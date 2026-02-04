@@ -2,127 +2,85 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Global Chat</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<title>🌍 Fun World Chat</title>
 <style>
 body {
   margin: 0;
-  background: #0b0b0b;
-  color: #e5e5e5;
   font-family: Arial, sans-serif;
-}
-
-header {
-  padding: 14px;
-  background: #111;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#room {
-  background: #1c1c1c;
+  background: #0f172a;
   color: white;
-  border: none;
-  padding: 6px;
-  border-radius: 6px;
+  display: flex;
+  justify-content: center;
 }
-
-#users {
-  font-size: 0.9em;
-  opacity: 0.8;
+#app {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
 }
-
+h1 {
+  text-align: center;
+}
+#homeScreen, #chatScreen {
+  display: none;
+}
 #chat {
-  padding: 15px;
-  height: calc(100vh - 160px);
+  height: 350px;
   overflow-y: auto;
-}
-
-.msg {
-  background: #1a1a1a;
-  border-radius: 14px;
+  background: #020617;
+  border-radius: 8px;
   padding: 10px;
-  margin-bottom: 10px;
-  max-width: 85%;
 }
-
-.name {
-  font-size: 0.75em;
-  opacity: 0.7;
+.message {
+  margin-bottom: 6px;
+  transition: transform 0.3s ease;
 }
-
-.time {
-  font-size: 0.65em;
-  opacity: 0.5;
-  margin-left: 6px;
-}
-
 .spin {
-  animation: spin 2s linear infinite;
+  animation: spin 1s linear 3;
 }
-
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
 }
-
-.reactions span {
-  margin-right: 6px;
-  cursor: pointer;
-}
-
-footer {
+.system { color: #38bdf8; font-size: 0.9em; }
+input, button {
+  width: 100%;
   padding: 10px;
-  background: #111;
-  display: flex;
-  gap: 6px;
-}
-
-input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 12px;
+  margin-top: 8px;
+  border-radius: 6px;
   border: none;
-  background: #1c1c1c;
-  color: white;
 }
-
-button {
-  background: #2563eb;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: white;
-  font-weight: bold;
-}
+button { background: #38bdf8; font-weight: bold; cursor: pointer; }
+button:disabled { background: #334155; }
+#top { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; color: #94a3b8; }
+.reactions span { cursor:pointer; margin-right:5px; }
 </style>
 </head>
-
 <body>
+<div id="app">
+  <!-- HOME SCREEN -->
+  <div id="homeScreen">
+    <h1>🌍 Fun World Chat</h1>
+    <input id="nameInput" placeholder="Enter username">
+    <button id="startBtn">Start Chat</button>
+  </div>
 
-<header>
-  <select id="room">
-    <option value="global">Global</option>
-    <option value="random">Random</option>
-    <option value="gaming">Gaming</option>
-  </select>
-  <div id="users">Online: 0</div>
-</header>
-
-<div id="chat"></div>
-
-<footer>
-  <input id="text" placeholder="Type a message..." disabled>
-  <button id="send" disabled>Send</button>
-</footer>
+  <!-- CHAT SCREEN -->
+  <div id="chatScreen">
+    <div id="top">
+      <div id="users">Online: 0</div>
+      <div id="cooldown"></div>
+    </div>
+    <div id="chat"></div>
+    <input id="msg" placeholder="Type a message...">
+    <button id="send">Send</button>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp,
-  query, orderBy, onSnapshot, deleteDoc, doc, setDoc
+  query, orderBy, onSnapshot, doc, setDoc, deleteDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -130,99 +88,105 @@ const firebaseConfig = {
   authDomain: "world-chat-6dd70.firebaseapp.com",
   projectId: "world-chat-6dd70",
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const chat = document.getElementById("chat");
-const input = document.getElementById("text");
-const send = document.getElementById("send");
-const users = document.getElementById("users");
-const roomSel = document.getElementById("room");
+// Elements
+const home = document.getElementById("homeScreen");
+const chatScreen = document.getElementById("chatScreen");
+const nameInput = document.getElementById("nameInput");
+const startBtn = document.getElementById("startBtn");
+const chatDiv = document.getElementById("chat");
+const msgInput = document.getElementById("msg");
+const sendBtn = document.getElementById("send");
+const cooldownDiv = document.getElementById("cooldown");
+const usersDiv = document.getElementById("users");
 
-let name = localStorage.getItem("name");
-let color = localStorage.getItem("color") || "#" + Math.floor(Math.random()*16777215).toString(16);
-localStorage.setItem("color", color);
-
-while (!name) {
-  name = prompt("Enter your name:");
-  if (name) localStorage.setItem("name", name);
-}
-
-input.disabled = false;
-send.disabled = false;
-
-await setDoc(doc(db, "online", name), { time: serverTimestamp() });
-
-window.addEventListener("beforeunload", async () => {
-  await deleteDoc(doc(db, "online", name));
-});
-
-onSnapshot(collection(db, "online"), s => {
-  users.innerText = "Online: " + s.size;
-});
-
+let username = null;
+let userColor = null;
 let lastSend = 0;
-let room = "global";
+const COOLDOWN = 10;
+const BAD_WORDS = ["fuck","shit","bitch","nigger","kanker","hoer"];
+const REACTIONS = ["👍","❤️","😂","😮","😢","😡"];
 
-function loadChat() {
-  chat.innerHTML = "";
-  const q = query(collection(db, "messages", room, "chat"), orderBy("time"));
-  onSnapshot(q, snap => {
-    chat.innerHTML = "";
-    snap.forEach(async d => {
-      const m = d.data();
-      if (m.time && Date.now() - m.time.toMillis() > 3600000) {
-        await deleteDoc(doc(db, "messages", room, "chat", d.id));
-        return;
-      }
-      const div = document.createElement("div");
-      div.className = "msg";
-      if (m.spin) div.classList.add("spin");
-      div.innerHTML = `
-        <div class="name" style="color:${m.color}">
-          ${m.name}<span class="time">${new Date(m.time.toMillis()).toLocaleTimeString()}</span>
-        </div>
-        ${m.text}
-        <div class="reactions">👍 ❤️ 😂 🔥</div>
-      `;
-      chat.appendChild(div);
-    });
-    chat.scrollTop = chat.scrollHeight;
-  });
+// FUNCTIONS
+function randomColor(){ return '#'+Math.floor(Math.random()*16777215).toString(16); }
+function showHome(){ home.style.display="block"; chatScreen.style.display="none"; }
+function showChat(){ home.style.display="none"; chatScreen.style.display="block"; }
+
+// LOGIN
+showHome();
+startBtn.onclick = async () => {
+  const name = nameInput.value.trim();
+  if(!name) return alert("Enter a username");
+  username = name;
+  userColor = randomColor();
+  showChat();
+  // Add to online
+  await setDoc(doc(db,"online",username), {name:username,time:serverTimestamp(),color:userColor});
 }
 
-loadChat();
+// REMOVE ONLINE ON LEAVE
+window.addEventListener("beforeunload",async()=>{ if(username) await deleteDoc(doc(db,"online",username)); });
 
-roomSel.onchange = () => {
-  room = roomSel.value;
-  loadChat();
-};
+// ONLINE USERS
+onSnapshot(query(collection(db,"online")), snap=>{
+  usersDiv.innerText=`Online: ${snap.size}`;
+});
 
-send.onclick = async () => {
-  const text = input.value.trim();
-  if (!text || Date.now() - lastSend < 10000) return;
+// CHAT MESSAGES
+onSnapshot(query(collection(db,"messages"),orderBy("time")), async snap=>{
+  chatDiv.innerHTML="";
+  const now = Date.now();
+  for(const d of snap.docs){
+    const data = d.data();
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("message");
+    msgDiv.style.color=data.color||"#fff";
 
-  lastSend = Date.now();
-  input.value = "";
+    let txt = data.text;
+    // /spin
+    if(txt.startsWith("/spin ")){ txt=txt.replace("/spin ",""); msgDiv.classList.add("spin"); }
 
-  let spin = false;
-  let msg = text;
+    msgDiv.innerHTML=`<b>${data.name}:</b> ${txt} <div class="reactions">${REACTIONS.map(r=>`<span onclick="react('${d.id}','${r}')">${r} ${data.reactions?.[r]||0}</span>`).join('')}</div>`;
+    chatDiv.appendChild(msgDiv);
 
-  if (text.startsWith("/spin ")) {
-    spin = true;
-    msg = text.replace("/spin ", "");
+    // Auto delete after 1h
+    if(data.time && now - data.time.toMillis() > 1000*60*60) await deleteDoc(doc(db,"messages",d.id));
   }
+  chatDiv.scrollTop=chatDiv.scrollHeight;
+});
 
-  await addDoc(collection(db, "messages", room, "chat"), {
-    name,
-    text: msg,
-    color,
-    spin,
-    time: serverTimestamp()
-  });
-};
+// SEND MESSAGE
+sendBtn.onclick=async()=>{
+  let text = msgInput.value.trim();
+  if(!text) return;
+  for(let w of BAD_WORDS) if(text.toLowerCase().includes(w)) return alert("Message blocked (bad language)");
+  const now = Date.now();
+  if(now-lastSend<COOLDOWN*1000) return;
+
+  lastSend = now;
+  msgInput.value="";
+  await addDoc(collection(db,"messages"),{name:username,text,time:serverTimestamp(),color:userColor,reactions:{}});
+  let t=COOLDOWN;
+  sendBtn.disabled=true;
+  cooldownDiv.innerText=`Cooldown: ${t}s`;
+  const timer=setInterval(()=>{
+    t--;
+    cooldownDiv.innerText=t>0?`Cooldown: ${t}s`:"";
+    if(t<=0){ clearInterval(timer); sendBtn.disabled=false;}
+  },1000);
+}
+
+// REACTIONS FUNCTION
+window.react=async(id,r)=>{
+  const docRef=doc(db,"messages",id);
+  const snap=await docRef.get();
+  const data=snap.data();
+  const reactions = data.reactions||{};
+  reactions[r]=reactions[r]?reactions[r]+1:1;
+  await updateDoc(docRef,{reactions});
+}
 </script>
-
 </body>
 </html>
