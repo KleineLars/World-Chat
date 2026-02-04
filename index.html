@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <style>
   :root { 
     --bg: #0d0d0d; 
-    /* Kleuren gebaseerd op je logo */
+    /* Kleuren gebaseerd op jouw logo */
     --logo-green: #4ade80; 
     --logo-blue: #3b82f6;
     --accent-gradient: linear-gradient(135deg, #4ade80 0%, #3b82f6 100%);
@@ -23,7 +23,7 @@
     overflow: hidden; position: fixed; 
   }
 
-  /* --- LOGIN SCREEN --- */
+  /* --- LOGIN SCHERM --- */
   #login-screen { 
     position: fixed; inset: 0; background: var(--bg); 
     display: flex; flex-direction: column; justify-content: center; 
@@ -40,6 +40,7 @@
   .logo-img {
     width: 80px; height: 80px; margin-bottom: 20px;
     filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.3));
+    object-fit: contain;
   }
 
   .login-card h1 { 
@@ -81,7 +82,7 @@
   }
 
   .header-left { display: flex; align-items: center; gap: 10px; }
-  .header-logo { width: 30px; height: 30px; }
+  .header-logo { width: 30px; height: 30px; object-fit: contain; }
 
   #chat-container { 
     flex: 1; overflow-y: auto; padding: 15px; 
@@ -126,9 +127,9 @@
 
 <div id="login-screen">
   <div class="login-card">
-    <img src="https://i.ibb.co/LzNfXpM/logo.png" class="logo-img" alt="Logo">
+    <img src="1000015853.png" class="logo-img" alt="Logo">
     <h1>WORLD CHAT</h1>
-    <input type="text" id="username-input" placeholder="What's your name?" maxlength="15" autocomplete="off">
+    <input type="text" id="username-input" placeholder="Wat is je naam?" maxlength="15" autocomplete="off">
     <button id="start-btn">Join Chat</button>
   </div>
 </div>
@@ -136,20 +137,19 @@
 <div id="app" style="display:none">
   <header>
     <div class="header-left">
-        <img src="https://i.ibb.co/LzNfXpM/logo.png" class="header-logo" alt="Logo">
+        <img src="1000015853.png" class="header-logo" alt="Logo">
         <b style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.1rem; font-weight: 800;">WORLD CHAT</b>
     </div>
     <span style="font-size: 0.9rem; opacity: 0.8;"><span id="user-count">0</span> online</span>
   </header>
   <div id="chat-container"></div>
   <div class="input-area">
-    <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+    <input type="text" id="msg-input" placeholder="Typ een bericht..." autocomplete="off">
     <button id="send-btn">➔</button>
   </div>
 </div>
 
 <script type="module">
-  // Firebase configuratie blijft hetzelfde...
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, doc, setDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -165,7 +165,7 @@
 
   document.getElementById("start-btn").onclick = () => {
     const val = document.getElementById("username-input").value.trim();
-    if(val.length < 2) return alert("Your name is too short!");
+    if(val.length < 2) return alert("Je naam is te kort!");
     user = val;
     localStorage.setItem("chat_user", val);
     location.reload(); 
@@ -196,7 +196,7 @@
           return `<div class="bubble ${isMe ? 'me' : ''}"><span class="name">${data.name}</span>${data.text}</div>`;
         }).join('');
         container.scrollTop = container.scrollHeight;
-      }, (e) => console.log("Waiting for index..."));
+      }, (e) => console.log("Wachten op database..."));
     };
 
     startListening();
