@@ -4,167 +4,120 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>🌍 Global Chat</title>
-
 <style>
-  :root {
-    --bg-color: #0d0d0d;
-    --accent-color: #d4a373;
-    --text-dim: #a0a0a0;
+  :root { 
+    --bg: #0d0d0d; 
+    --accent: #d4a373; 
+    --input-bg: #1a1a1a;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    background: var(--bg-color);
-    color: white;
-    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    overflow: hidden; /* Voorkomt raar scrollen van de hele pagina */
+  
+  body, html { 
+    margin: 0; padding: 0; width: 100%; height: 100%; 
+    background: var(--bg); color: white; font-family: -apple-system, sans-serif; 
+    overflow: hidden; /* Voorkomt dubbele scrollbars op mobiel */
   }
 
-  /* --- LOGIN SCHERM --- */
-  #login-screen {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    padding: 20px;
+  #app { 
+    display: flex; flex-direction: column; 
+    height: 100vh; height: -webkit-fill-available; 
   }
 
-  .login-card {
-    width: 100%;
-    max-width: 320px;
-    background: #1a1a1a;
-    padding: 25px;
-    border-radius: 20px;
-    border: 1px solid #333;
-    text-align: center;
+  /* Header */
+  header { 
+    padding: env(safe-area-inset-top) 15px 10px 15px; 
+    background: #111; border-bottom: 1px solid #222; 
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 10;
   }
 
-  input#name-input {
-    width: 100%;
-    padding: 15px;
-    background: #000;
-    border: 1px solid #444;
-    border-radius: 12px;
-    color: white;
-    margin-bottom: 15px;
-    font-size: 16px; /* Voorkomt inzoomen op iPhone */
-  }
-
-  /* --- CHAT SCHERM --- */
-  #chat-screen {
-    display: none;
-    flex-direction: column;
-    height: 100vh; /* Gebruik viewport height */
-    height: -webkit-fill-available;
-  }
-
-  header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #222;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-color);
-  }
-
-  #chat-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  /* Chat venster */
+  #chat-container { 
+    flex: 1; overflow-y: auto; padding: 15px; 
+    display: flex; flex-direction: column; gap: 12px;
     background: #080808;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Bubbels */
-  .msg { max-width: 85%; margin-bottom: 5px; }
-  .msg.me { align-self: flex-end; }
-  
-  .msg-name { font-size: 0.8rem; font-weight: bold; margin-bottom: 3px; display: block; }
-  .bubble {
-    background: #141414;
-    padding: 12px 16px;
-    border-radius: 18px;
-    border-top-left-radius: 2px;
-    border: 1px solid #262626;
-    word-wrap: break-word;
+  /* Chat Bubbels (Thema match) */
+  .bubble { 
+    background: #141414; padding: 12px 16px; border-radius: 18px; 
+    border-top-left-radius: 2px; border: 1px solid #262626; 
+    max-width: 85%; align-self: flex-start; word-wrap: break-word;
+    position: relative;
   }
-  .me .bubble { 
-    background: #1e1e1e; 
-    border-top-left-radius: 18px; 
-    border-top-right-radius: 2px;
+  .me { 
+    align-self: flex-end; border-top-left-radius: 18px; 
+    border-top-right-radius: 2px; background: #1e1e1e; 
     border-color: #333;
   }
-
-  /* --- INPUT BALK FIX --- */
-  .input-area {
-    padding: 10px 15px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom)); /* Voor iPhones met notch */
-    background: #0d0d0d;
-    display: flex;
-    gap: 10px;
-    border-top: 1px solid #222;
+  .name { 
+    font-size: 0.75rem; color: var(--accent); 
+    font-weight: bold; margin-bottom: 4px; display: block; 
   }
 
-  #msg-input {
-    flex: 1;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    padding: 12px 18px;
-    border-radius: 25px;
-    color: white;
-    font-size: 16px; 
+  /* Input balk onderaan (Fixed Mobile Fix) */
+  .input-area { 
+    padding: 10px 15px calc(10px + env(safe-area-inset-bottom)) 15px; 
+    background: #0d0d0d; border-top: 1px solid #222; 
+    display: flex; gap: 10px; align-items: center;
+  }
+  
+  input#msg-input { 
+    flex: 1; background: var(--input-bg); border: 1px solid #333; 
+    border-radius: 25px; color: white; padding: 12px 18px; 
+    font-size: 16px; /* 16px voorkomt auto-zoom op iOS */
     outline: none;
   }
 
-  #send-btn {
-    background: var(--accent-color);
-    border: none;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    color: black;
-    font-weight: bold;
-    cursor: pointer;
-    flex-shrink: 0;
+  button#send-btn { 
+    background: var(--accent); border: none; width: 45px; height: 45px; 
+    border-radius: 50%; font-weight: bold; cursor: pointer; 
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Login Scherm */
+  #login-screen { 
+    position: fixed; inset: 0; background: var(--bg); 
+    display: flex; flex-direction: column; justify-content: center; 
+    align-items: center; z-index: 1000; padding: 20px;
+  }
+  .login-box {
+    width: 100%; max-width: 300px; text-align: center;
   }
 </style>
 </head>
 <body>
 
-  <div id="login-screen">
-    <div class="login-card">
-      <h2 style="color:var(--accent-color)">🌍 Global Chat</h2>
-      <input type="text" id="name-input" placeholder="Je naam...">
-      <button onclick="login()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--accent-color); font-weight:bold;">Start</button>
-    </div>
+<div id="login-screen">
+  <div class="login-box">
+    <h1 style="color:var(--accent); margin-bottom: 25px;">🌍 Global Chat</h1>
+    <input type="text" id="username-input" placeholder="Kies een naam..." maxlength="15">
+    <button id="start-btn" style="width:100%; padding:15px; background:var(--accent); border:none; border-radius:25px; font-weight:bold; margin-top:10px; cursor:pointer;">Start Chat</button>
   </div>
+</div>
 
-  <div id="chat-screen">
-    <header>
-      <b style="color:var(--accent-color)">GLOBAL CHAT</b>
-      <div>Online: <span id="count">0</span></div>
-    </header>
-
-    <div id="chat-container"></div>
-
-    <div class="input-area">
-      <input type="text" id="msg-input" placeholder="Typ iets..." autocomplete="off">
-      <button id="send-btn">➔</button>
-    </div>
+<div id="app" style="display:none">
+  <header>
+    <b style="color:var(--accent)">GLOBAL CHAT</b>
+    <span style="font-size: 0.9rem;">Online: <span id="user-count">0</span> 👤</span>
+  </header>
+  
+  <div id="chat-container"></div>
+  
+  <div class="input-area">
+    <input type="text" id="msg-input" placeholder="Typ een bericht..." autocomplete="off">
+    <button id="send-btn">➔</button>
   </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { 
+    getFirestore, collection, addDoc, serverTimestamp, 
+    query, orderBy, onSnapshot, limit, doc, setDoc 
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
@@ -177,53 +130,55 @@
 
   let user = localStorage.getItem("chat_user");
 
-  // Functie om in te loggen
-  window.login = () => {
-    const n = document.getElementById("name-input").value.trim();
-    if(n.length < 2) return alert("Naam te kort");
-    user = n;
-    localStorage.setItem("chat_user", n);
-    initChat();
+  // Login handler
+  document.getElementById("start-btn").onclick = () => {
+    const val = document.getElementById("username-input").value.trim();
+    if(val.length < 2) return alert("Naam moet minimaal 2 tekens zijn.");
+    user = val;
+    localStorage.setItem("chat_user", val);
+    location.reload(); 
   };
 
-  if(user) { 
-    document.getElementById("name-input").value = user;
-  }
-
-  function initChat() {
+  if(user) {
     document.getElementById("login-screen").style.display = "none";
-    document.getElementById("chat-screen").style.display = "flex";
+    document.getElementById("app").style.display = "flex";
     
-    // Aanwezigheid melden
-    setDoc(doc(db, "online", user), { name: user });
-
-    // Luister naar online mensen
-    onSnapshot(collection(db, "online"), s => document.getElementById("count").innerText = s.size);
-
-    // Berichten laden
-    const q = query(collection(db, "messages"), orderBy("time", "asc"), limit(50));
+    // Status: Online zetten
+    setDoc(doc(db, "online", user), { name: user, lastSeen: serverTimestamp() });
+    
+    // Online teller
+    onSnapshot(collection(db, "online"), s => {
+      document.getElementById("user-count").innerText = s.size;
+    });
+    
+    // Berichten ophalen (Gelimiteerd op 50 voor performance)
+    const q = query(collection(db, "messages"), orderBy("time", "desc"), limit(50));
     onSnapshot(q, s => {
       const container = document.getElementById("chat-container");
-      container.innerHTML = "";
-      s.forEach(d => {
+      const docs = [...s.docs].reverse(); // Draai om zodat nieuwste onderaan staan
+      
+      container.innerHTML = docs.map(d => {
         const data = d.data();
         const isMe = data.name === user;
-        const div = document.createElement("div");
-        div.className = `msg ${isMe ? 'me' : ''}`;
-        div.innerHTML = `<span class="msg-name">${data.name}</span><div class="bubble">${data.text}</div>`;
-        container.appendChild(div);
-      });
+        return `
+          <div class="bubble ${isMe ? 'me' : ''}">
+            <span class="name">${data.name}</span>
+            <div class="text">${data.text}</div>
+          </div>
+        `;
+      }).join('');
+      
       container.scrollTop = container.scrollHeight;
     });
   }
 
-  // HET VERSTUREN (EXTRA VEILIG)
-  async function stuurBericht() {
+  // Bericht versturen
+  async function send() {
     const inp = document.getElementById("msg-input");
     const txt = inp.value.trim();
     if(!txt) return;
 
-    inp.value = ""; // Maak leeg voor snelheid op mobiel
+    inp.value = ""; // Maak direct leeg voor snelle feedback
     
     try {
       await addDoc(collection(db, "messages"), {
@@ -232,14 +187,21 @@
         time: serverTimestamp()
       });
     } catch(e) {
-      alert("Fout: " + e.message);
+      console.error(e);
+      alert("Fout bij verzenden. Probeer het opnieuw.");
     }
   }
 
-  document.getElementById("send-btn").onclick = stuurBericht;
-  document.getElementById("msg-input").onkeypress = (e) => { if(e.key === "Enter") stuurBericht(); };
+  document.getElementById("send-btn").onclick = send;
+  document.getElementById("msg-input").onkeypress = e => { if(e.key === "Enter") send(); };
 
+  // Focus fix voor mobiel: scroll naar beneden als toetsenbord opent
+  document.getElementById("msg-input").addEventListener('focus', () => {
+    setTimeout(() => {
+      const container = document.getElementById("chat-container");
+      container.scrollTop = container.scrollHeight;
+    }, 300);
+  });
 </script>
 </body>
 </html>
-
