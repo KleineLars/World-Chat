@@ -1,34 +1,99 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Wereld Chat 🌍</title>
+<title>🌍 World Chat</title>
+
 <style>
-body { font-family: Arial; background:#111; color:white; }
-#chat { height:300px; overflow-y:auto; border:1px solid #444; padding:10px; }
-input, button { padding:10px; margin:5px 0; width:100%; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+
+#app {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+#chat {
+  height: 350px;
+  overflow-y: auto;
+  background: #020617;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.message {
+  margin-bottom: 6px;
+}
+
+.system {
+  color: #38bdf8;
+  font-size: 0.9em;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  background: #38bdf8;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #334155;
+}
+
+#top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+  color: #94a3b8;
+}
 </style>
 </head>
+
 <body>
+<div id="app">
 
-<h2>🌍 Wereld Chat</h2>
+<h1>🌍 World Chat</h1>
 
-<div id="nameScreen">
-  <input id="username" placeholder="Kies je naam">
-  <button onclick="setName()">Start Chat</button>
+<div id="top">
+  <div id="users">Online: 0</div>
+  <div id="cooldown"></div>
 </div>
 
-<div id="chatScreen" style="display:none;">
-  <div id="chat"></div>
-  <input id="message" placeholder="Typ een bericht...">
-  <button onclick="sendMessage()">Verstuur</button>
-  <p id="cooldown"></p>
+<div id="login"></div>
+
+<div id="chat"></div>
+
+<input id="msg" placeholder="Type a message..." disabled>
+<button id="send" disabled>Send</button>
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore, collection, addDoc, serverTimestamp,
+  query, orderBy, onSnapshot, deleteDoc, doc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
@@ -39,48 +104,117 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let name = "";
-let lastSend = 0;
-
-window.setName = () => {
-  name = document.getElementById("username").value;
-  if (!name) return alert("Kies een naam!");
-  document.getElementById("nameScreen").style.display = "none";
-  document.getElementById("chatScreen").style.display = "block";
-};
-
 const chatDiv = document.getElementById("chat");
+const msgInput = document.getElementById("msg");
+const sendBtn = document.getElementById("send");
+const cooldownDiv = document.getElementById("cooldown");
+const usersDiv = document.getElementById("users");
+const loginDiv = document.getElementById("login");
 
-const q = query(collection(db, "messages"), orderBy("time"));
-onSnapshot(q, (snapshot) => {
-  chatDiv.innerHTML = "";
-  snapshot.forEach(doc => {
-    const d = doc.data();
-    chatDiv.innerHTML += `<p><b>${d.name}:</b> ${d.text}</p>`;
+let username = localStorage.getItem("username");
+let lastSend = 0;
+const COOLDOWN = 10;
+const BAD_WORDS = ["fuck","shit","bitch","nigger","kanker","hoer"];
+
+function showLogin() {
+  loginDiv.innerHTML = username
+    ? `<button id="continue">Continue as ${username}</button>
+       <button id="change">Use another name</button>`
+    : `<input id="name" placeholder="Enter username">
+       <button id="start">Start Chat</button>`;
+
+  document.getElementById("continue")?.addEventListener("click", startChat);
+  document.getElementById("change")?.addEventListener("click", () => {
+    localStorage.removeItem("username");
+    username = null;
+    showLogin();
   });
+
+  document.getElementById("start")?.addEventListener("click", () => {
+    const n = document.getElementById("name").value.trim();
+    if (!n) return alert("Enter a name");
+    username = n;
+    localStorage.setItem("username", n);
+    startChat();
+  });
+}
+
+showLogin();
+
+async function startChat() {
+  loginDiv.innerHTML = "";
+  msgInput.disabled = false;
+  sendBtn.disabled = false;
+
+  await setDoc(doc(db, "online", username), {
+    name: username,
+    time: serverTimestamp()
+  });
+}
+
+window.addEventListener("beforeunload", async () => {
+  if (username) await deleteDoc(doc(db, "online", username));
+});
+
+const onlineQuery = query(collection(db, "online"));
+onSnapshot(onlineQuery, snap => {
+  usersDiv.innerText = `Online: ${snap.size}`;
+});
+
+const msgQuery = query(collection(db, "messages"), orderBy("time"));
+onSnapshot(msgQuery, snap => {
+  chatDiv.innerHTML = "";
+  const now = Date.now();
+
+  snap.forEach(async d => {
+    const data = d.data();
+
+    if (data.time && now - data.time.toMillis() > 1000 * 60 * 60) {
+      await deleteDoc(doc(db, "messages", d.id));
+      return;
+    }
+
+    chatDiv.innerHTML +=
+      `<div class="message"><b>${data.name}:</b> ${data.text}</div>`;
+  });
+
   chatDiv.scrollTop = chatDiv.scrollHeight;
 });
 
-window.sendMessage = async () => {
-  const now = Date.now();
-  if (now - lastSend < 10000) {
-    document.getElementById("cooldown").innerText =
-      `Wacht ${Math.ceil((10000 - (now-lastSend))/1000)} sec`;
-    return;
-  }
-
-  const text = document.getElementById("message").value;
+sendBtn.onclick = async () => {
+  const text = msgInput.value.trim();
   if (!text) return;
 
+  for (let w of BAD_WORDS) {
+    if (text.toLowerCase().includes(w)) {
+      return alert("Message blocked (bad language)");
+    }
+  }
+
+  const now = Date.now();
+  if (now - lastSend < COOLDOWN * 1000) return;
+
+  lastSend = now;
+  msgInput.value = "";
+
   await addDoc(collection(db, "messages"), {
-    name,
+    name: username,
     text,
-    time: now
+    time: serverTimestamp()
   });
 
-  document.getElementById("message").value = "";
-  lastSend = now;
-  document.getElementById("cooldown").innerText = "";
+  let t = COOLDOWN;
+  sendBtn.disabled = true;
+  cooldownDiv.innerText = `Cooldown: ${t}s`;
+
+  const timer = setInterval(() => {
+    t--;
+    cooldownDiv.innerText = t > 0 ? `Cooldown: ${t}s` : "";
+    if (t <= 0) {
+      clearInterval(timer);
+      sendBtn.disabled = false;
+    }
+  }, 1000);
 };
 </script>
 
