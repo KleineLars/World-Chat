@@ -2,186 +2,114 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>🌍 Global Chat</title>
 
 <style>
   :root {
     --bg-color: #0d0d0d;
-    --card-bg: #1a1a1a;
-    --accent-color: #d4a373; /* De goud/beige kleur uit de screenshot */
-    --text-main: #ffffff;
+    --accent-color: #d4a373;
     --text-dim: #a0a0a0;
-    --bubble-bg: #141414;
-    --bubble-border: #262626;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-  body {
+  html, body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 0;
+    height: 100%;
+    width: 100%;
     background: var(--bg-color);
-    color: var(--text-main);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    color: white;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    overflow: hidden; /* Voorkomt raar scrollen van de hele pagina */
   }
 
-  /* --- HOME / LOGIN SCHERM --- */
+  /* --- LOGIN SCHERM --- */
   #login-screen {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    height: 100vh;
     padding: 20px;
-    background: radial-gradient(circle at center, #1a1a1a 0%, #0d0d0d 100%);
-  }
-
-  .logo-area {
-    font-size: 4rem;
-    margin-bottom: 10px;
-  }
-
-  #login-screen h1 {
-    color: var(--accent-color);
-    margin-bottom: 30px;
-    letter-spacing: 1px;
   }
 
   .login-card {
     width: 100%;
     max-width: 320px;
-    background: var(--card-bg);
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     border: 1px solid #333;
+    text-align: center;
   }
 
-  #name-input {
+  input#name-input {
     width: 100%;
     padding: 15px;
     background: #000;
     border: 1px solid #444;
     border-radius: 12px;
     color: white;
-    font-size: 1rem;
     margin-bottom: 15px;
-    outline: none;
+    font-size: 16px; /* Voorkomt inzoomen op iPhone */
   }
-
-  #name-input:focus { border-color: var(--accent-color); }
-
-  .btn-start {
-    width: 100%;
-    padding: 15px;
-    background: var(--accent-color);
-    color: #000;
-    border: none;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-
-  .btn-start:active { transform: scale(0.98); }
 
   /* --- CHAT SCHERM --- */
   #chat-screen {
-    display: none; /* Wordt getoond na login */
+    display: none;
     flex-direction: column;
-    height: 100%;
+    height: 100vh; /* Gebruik viewport height */
+    height: -webkit-fill-available;
   }
 
   header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     padding: 15px 20px;
-    background: var(--bg-color);
     border-bottom: 1px solid #222;
-    z-index: 10;
-  }
-
-  header h2 {
-    margin: 0;
-    font-size: 1.3rem;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-  }
-
-  .back-arrow { color: var(--accent-color); cursor: pointer; }
-
-  .online-badge {
-    color: var(--accent-color);
-    font-weight: bold;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    background: var(--bg-color);
   }
 
   #chat-container {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 15px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     background: #080808;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* Chat Bubbels Style (Screenshot match) */
-  .msg-wrapper {
-    max-width: 85%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .msg-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    padding: 0 4px;
-  }
-
-  .msg-name { font-weight: 600; font-size: 0.85rem; color: #eee; }
-  .msg-time { font-size: 0.7rem; color: var(--text-dim); margin-left: 8px; }
-
+  /* Bubbels */
+  .msg { max-width: 85%; margin-bottom: 5px; }
+  .msg.me { align-self: flex-end; }
+  
+  .msg-name { font-size: 0.8rem; font-weight: bold; margin-bottom: 3px; display: block; }
   .bubble {
-    background: var(--bubble-bg);
+    background: #141414;
     padding: 12px 16px;
-    border-radius: 14px;
+    border-radius: 18px;
     border-top-left-radius: 2px;
-    border: 1px solid var(--bubble-border);
-    line-height: 1.4;
+    border: 1px solid #262626;
     word-wrap: break-word;
-    font-size: 0.95rem;
   }
-
-  /* Eigen berichten aan de rechterkant */
-  .msg-wrapper.me {
-    align-self: flex-end;
-  }
-  .me .bubble {
-    background: #1e1e1e;
-    border-top-left-radius: 14px;
+  .me .bubble { 
+    background: #1e1e1e; 
+    border-top-left-radius: 18px; 
     border-top-right-radius: 2px;
     border-color: #333;
   }
-  .me .msg-info { flex-direction: row-reverse; }
 
-  /* Input Balk */
-  .input-box {
-    padding: 15px;
-    background: var(--bg-color);
+  /* --- INPUT BALK FIX --- */
+  .input-area {
+    padding: 10px 15px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom)); /* Voor iPhones met notch */
+    background: #0d0d0d;
     display: flex;
-    align-items: center;
     gap: 10px;
     border-top: 1px solid #222;
   }
@@ -193,8 +121,8 @@
     padding: 12px 18px;
     border-radius: 25px;
     color: white;
+    font-size: 16px; 
     outline: none;
-    font-size: 1rem;
   }
 
   #send-btn {
@@ -203,50 +131,41 @@
     width: 45px;
     height: 45px;
     border-radius: 50%;
+    color: black;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-shrink: 0;
   }
 </style>
 </head>
 <body>
 
   <div id="login-screen">
-    <div class="logo-area">🌍</div>
-    <h1>Global Chat</h1>
     <div class="login-card">
-      <input type="text" id="name-input" placeholder="Je naam..." maxlength="15">
-      <button id="login-btn" class="btn-start">Start Chatten</button>
+      <h2 style="color:var(--accent-color)">🌍 Global Chat</h2>
+      <input type="text" id="name-input" placeholder="Je naam...">
+      <button onclick="login()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--accent-color); font-weight:bold;">Start</button>
     </div>
   </div>
 
   <div id="chat-screen">
     <header>
-      <h2><span class="back-arrow" onclick="location.reload()">←</span> Global Chat</h2>
-      <div class="online-badge">
-        <span id="user-count">0</span> 👤
-      </div>
+      <b style="color:var(--accent-color)">GLOBAL CHAT</b>
+      <div>Online: <span id="count">0</span></div>
     </header>
 
-    <div id="chat-container">
-      </div>
+    <div id="chat-container"></div>
 
-    <div class="input-box">
-      <input type="text" id="msg-input" placeholder="Typ een bericht...">
+    <div class="input-area">
+      <input type="text" id="msg-input" placeholder="Typ iets..." autocomplete="off">
       <button id="send-btn">➔</button>
     </div>
   </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import {
-    getFirestore, collection, addDoc, serverTimestamp,
-    query, orderBy, onSnapshot, doc, setDoc, limit, deleteDoc
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // JOUW FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
     authDomain: "world-chat-6dd70.firebaseapp.com",
@@ -256,106 +175,71 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const loginScreen = document.getElementById("login-screen");
-  const chatScreen = document.getElementById("chat-screen");
-  const chatContainer = document.getElementById("chat-container");
-  const nameInput = document.getElementById("name-input");
-  const msgInput = document.getElementById("msg-input");
-  const sendBtn = document.getElementById("send-btn");
-  const userCount = document.getElementById("user-count");
+  let user = localStorage.getItem("chat_user");
 
-  let username = localStorage.getItem("chat_user");
-
-  // Check of er al een naam is
-  if (username) {
-    nameInput.value = username;
-  }
-
-  // LOGIN FUNCTIE
-  document.getElementById("login-btn").onclick = () => {
-    const name = nameInput.value.trim();
-    if (name.length < 2) return alert("Kies een langere naam");
-    
-    username = name;
-    localStorage.setItem("chat_user", name);
-    startApp();
+  // Functie om in te loggen
+  window.login = () => {
+    const n = document.getElementById("name-input").value.trim();
+    if(n.length < 2) return alert("Naam te kort");
+    user = n;
+    localStorage.setItem("chat_user", n);
+    initChat();
   };
 
-  async function startApp() {
-    loginScreen.style.display = "none";
-    chatScreen.style.display = "flex";
-
-    // Zet jezelf op online
-    await setDoc(doc(db, "online", username), {
-      name: username,
-      active: true
-    });
-
-    loadMessages();
-    loadOnlineUsers();
+  if(user) { 
+    document.getElementById("name-input").value = user;
   }
 
-  // ONLINE GEBRUIKERS BIJHOUDEN
-  function loadOnlineUsers() {
-    onSnapshot(collection(db, "online"), (snap) => {
-      userCount.innerText = snap.size;
-    });
-  }
-
-  // BERICHTEN LADEN
-  function loadMessages() {
-    const q = query(collection(db, "messages"), orderBy("time", "asc"), limit(50));
+  function initChat() {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("chat-screen").style.display = "flex";
     
-    onSnapshot(q, (snap) => {
-      chatContainer.innerHTML = "";
-      snap.forEach((d) => {
-        const data = d.data();
-        const isMe = data.name === username;
-        
-        // Tijd omzetten naar leesbaar formaat
-        let time = "";
-        if(data.time) {
-          const d = data.time.toDate();
-          time = d.getHours() + ":" + d.getMinutes().toString().padStart(2, '0');
-        }
+    // Aanwezigheid melden
+    setDoc(doc(db, "online", user), { name: user });
 
-        const msgDiv = document.createElement("div");
-        msgDiv.className = `msg-wrapper ${isMe ? 'me' : ''}`;
-        msgDiv.innerHTML = `
-          <div class="msg-info">
-            <span class="msg-name">${data.name}</span>
-            <span class="msg-time">${time}</span>
-          </div>
-          <div class="bubble">${data.text}</div>
-        `;
-        chatContainer.appendChild(msgDiv);
+    // Luister naar online mensen
+    onSnapshot(collection(db, "online"), s => document.getElementById("count").innerText = s.size);
+
+    // Berichten laden
+    const q = query(collection(db, "messages"), orderBy("time", "asc"), limit(50));
+    onSnapshot(q, s => {
+      const container = document.getElementById("chat-container");
+      container.innerHTML = "";
+      s.forEach(d => {
+        const data = d.data();
+        const isMe = data.name === user;
+        const div = document.createElement("div");
+        div.className = `msg ${isMe ? 'me' : ''}`;
+        div.innerHTML = `<span class="msg-name">${data.name}</span><div class="bubble">${data.text}</div>`;
+        container.appendChild(div);
       });
-      // Scroll naar beneden
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      container.scrollTop = container.scrollHeight;
     });
   }
 
-  // BERICHT VERSTUREN
-  async function sendMessage() {
-    const text = msgInput.value.trim();
-    if (!text) return;
+  // HET VERSTUREN (EXTRA VEILIG)
+  async function stuurBericht() {
+    const inp = document.getElementById("msg-input");
+    const txt = inp.value.trim();
+    if(!txt) return;
 
-    msgInput.value = ""; // Maak leeg voor snelheid
-
+    inp.value = ""; // Maak leeg voor snelheid op mobiel
+    
     try {
       await addDoc(collection(db, "messages"), {
-        name: username,
-        text: text,
+        name: user,
+        text: txt,
         time: serverTimestamp()
       });
-    } catch (e) {
-      alert("Fout bij verzenden!");
+    } catch(e) {
+      alert("Fout: " + e.message);
     }
   }
 
-  sendBtn.onclick = sendMessage;
-  msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
+  document.getElementById("send-btn").onclick = stuurBericht;
+  document.getElementById("msg-input").onkeypress = (e) => { if(e.key === "Enter") stuurBericht(); };
 
 </script>
 </body>
 </html>
+
