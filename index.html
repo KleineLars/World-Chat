@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Wereld Chat 🌍</title>
+<style>
+body { font-family: Arial; background:#111; color:white; }
+#chat { height:300px; overflow-y:auto; border:1px solid #444; padding:10px; }
+input, button { padding:10px; margin:5px 0; width:100%; }
+</style>
+</head>
+<body>
+
+<h2>🌍 Wereld Chat</h2>
+
+<div id="nameScreen">
+  <input id="username" placeholder="Kies je naam">
+  <button onclick="setName()">Start Chat</button>
+</div>
+
+<div id="chatScreen" style="display:none;">
+  <div id="chat"></div>
+  <input id="message" placeholder="Typ een bericht...">
+  <button onclick="sendMessage()">Verstuur</button>
+  <p id="cooldown"></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "HIER_JOUW_APIKEY",
+  authDomain: "HIER_JOUW_DOMAIN",
+  projectId: "HIER_JOUW_PROJECTID",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let name = "";
+let lastSend = 0;
+
+window.setName = () => {
+  name = document.getElementById("username").value;
+  if (!name) return alert("Kies een naam!");
+  document.getElementById("nameScreen").style.display = "none";
+  document.getElementById("chatScreen").style.display = "block";
+};
+
+const chatDiv = document.getElementById("chat");
+
+const q = query(collection(db, "messages"), orderBy("time"));
+onSnapshot(q, (snapshot) => {
+  chatDiv.innerHTML = "";
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    chatDiv.innerHTML += `<p><b>${d.name}:</b> ${d.text}</p>`;
+  });
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+});
+
+window.sendMessage = async () => {
+  const now = Date.now();
+  if (now - lastSend < 10000) {
+    document.getElementById("cooldown").innerText =
+      `Wacht ${Math.ceil((10000 - (now-lastSend))/1000)} sec`;
+    return;
+  }
+
+  const text = document.getElementById("message").value;
+  if (!text) return;
+
+  await addDoc(collection(db, "messages"), {
+    name,
+    text,
+    time: now
+  });
+
+  document.getElementById("message").value = "";
+  lastSend = now;
+  document.getElementById("cooldown").innerText = "";
+};
+</script>
+
+</body>
+</html>
