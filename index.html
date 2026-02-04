@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🌍 Global Chat</title>
 
 <style>
@@ -13,19 +13,23 @@
     --text-main: #ffffff;
     --text-dim: #a0a0a0;
     --bubble-bg: #141414;
+    --bubble-border: #262626;
   }
+
+  * { box-sizing: border-box; }
 
   body {
     margin: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background: var(--bg-color);
     color: var(--text-main);
     height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
-  /* --- Home / Login Pagina --- */
+  /* --- HOME / LOGIN SCHERM --- */
   #login-screen {
     display: flex;
     flex-direction: column;
@@ -33,37 +37,45 @@
     align-items: center;
     height: 100%;
     padding: 20px;
-    text-align: center;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #0d0d0d 100%);
   }
 
-  .logo-icon {
-    font-size: 3rem;
+  .logo-area {
+    font-size: 4rem;
     margin-bottom: 10px;
   }
 
   #login-screen h1 {
     color: var(--accent-color);
     margin-bottom: 30px;
+    letter-spacing: 1px;
   }
 
-  .input-group {
+  .login-card {
     width: 100%;
-    max-width: 300px;
+    max-width: 320px;
+    background: var(--card-bg);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid #333;
   }
 
-  input#name-input {
+  #name-input {
     width: 100%;
     padding: 15px;
-    background: var(--card-bg);
-    border: 1px solid #333;
+    background: #000;
+    border: 1px solid #444;
     border-radius: 12px;
     color: white;
     font-size: 1rem;
-    box-sizing: border-box;
     margin-bottom: 15px;
+    outline: none;
   }
 
-  .btn-primary {
+  #name-input:focus { border-color: var(--accent-color); }
+
+  .btn-start {
     width: 100%;
     padding: 15px;
     background: var(--accent-color);
@@ -73,11 +85,14 @@
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
+    transition: transform 0.2s;
   }
 
-  /* --- Chat Interface --- */
+  .btn-start:active { transform: scale(0.98); }
+
+  /* --- CHAT SCHERM --- */
   #chat-screen {
-    display: none; /* Verbergen tot login */
+    display: none; /* Wordt getoond na login */
     flex-direction: column;
     height: 100%;
   }
@@ -87,21 +102,25 @@
     align-items: center;
     justify-content: space-between;
     padding: 15px 20px;
+    background: var(--bg-color);
     border-bottom: 1px solid #222;
+    z-index: 10;
   }
 
   header h2 {
     margin: 0;
-    font-size: 1.4rem;
-    color: var(--text-main);
+    font-size: 1.3rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
 
-  .online-count {
+  .back-arrow { color: var(--accent-color); cursor: pointer; }
+
+  .online-badge {
     color: var(--accent-color);
     font-weight: bold;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -110,74 +129,72 @@
   #chat-container {
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
+    padding: 20px 15px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 15px;
+    background: #080808;
   }
 
-  /* Chat Bubbels Style */
-  .message-wrapper {
+  /* Chat Bubbels Style (Screenshot match) */
+  .msg-wrapper {
     max-width: 85%;
-    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
   }
 
-  .msg-header {
+  .msg-info {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
     margin-bottom: 4px;
-    padding: 0 5px;
+    padding: 0 4px;
   }
 
-  .username {
-    font-weight: bold;
-    font-size: 0.9rem;
-  }
-
-  .timestamp {
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    margin-left: 10px;
-  }
+  .msg-name { font-weight: 600; font-size: 0.85rem; color: #eee; }
+  .msg-time { font-size: 0.7rem; color: var(--text-dim); margin-left: 8px; }
 
   .bubble {
     background: var(--bubble-bg);
     padding: 12px 16px;
-    border-radius: 15px;
+    border-radius: 14px;
     border-top-left-radius: 2px;
+    border: 1px solid var(--bubble-border);
     line-height: 1.4;
-    border: 1px solid #222;
     word-wrap: break-word;
+    font-size: 0.95rem;
   }
 
-  /* Jouw eigen berichten */
-  .me {
+  /* Eigen berichten aan de rechterkant */
+  .msg-wrapper.me {
     align-self: flex-end;
   }
   .me .bubble {
     background: #1e1e1e;
-    border-top-left-radius: 15px;
+    border-top-left-radius: 14px;
     border-top-right-radius: 2px;
+    border-color: #333;
   }
+  .me .msg-info { flex-direction: row-reverse; }
 
-  /* Input Area */
-  .input-area {
+  /* Input Balk */
+  .input-box {
     padding: 15px;
     background: var(--bg-color);
     display: flex;
+    align-items: center;
     gap: 10px;
     border-top: 1px solid #222;
   }
 
   #msg-input {
     flex: 1;
-    background: var(--card-bg);
-    border: none;
-    padding: 12px 15px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    padding: 12px 18px;
     border-radius: 25px;
     color: white;
     outline: none;
+    font-size: 1rem;
   }
 
   #send-btn {
@@ -187,42 +204,36 @@
     height: 45px;
     border-radius: 50%;
     cursor: pointer;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-  }
-
-  #send-btn:disabled {
-    opacity: 0.5;
   }
 </style>
 </head>
 <body>
 
   <div id="login-screen">
-    <div class="logo-icon">🌍</div>
+    <div class="logo-area">🌍</div>
     <h1>Global Chat</h1>
-    <div class="input-group">
-      <input type="text" id="name-input" placeholder="Kies een naam..." maxlength="15">
-      <button id="login-btn" class="btn-primary">Start Chatten</button>
+    <div class="login-card">
+      <input type="text" id="name-input" placeholder="Je naam..." maxlength="15">
+      <button id="login-btn" class="btn-start">Start Chatten</button>
     </div>
   </div>
 
   <div id="chat-screen">
     <header>
-      <h2><span>←</span> Global Chat</h2>
-      <div class="online-count">
-        <span id="users-num">0</span> 👤
+      <h2><span class="back-arrow" onclick="location.reload()">←</span> Global Chat</h2>
+      <div class="online-badge">
+        <span id="user-count">0</span> 👤
       </div>
     </header>
 
     <div id="chat-container">
       </div>
 
-    <div id="cooldown" style="text-align: center; font-size: 0.8rem; color: var(--accent-color);"></div>
-
-    <div class="input-area">
+    <div class="input-box">
       <input type="text" id="msg-input" placeholder="Typ een bericht...">
       <button id="send-btn">➔</button>
     </div>
@@ -232,9 +243,10 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import {
     getFirestore, collection, addDoc, serverTimestamp,
-    query, orderBy, onSnapshot, deleteDoc, doc, setDoc, limit
+    query, orderBy, onSnapshot, doc, setDoc, limit, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // JOUW FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
     authDomain: "world-chat-6dd70.firebaseapp.com",
@@ -244,83 +256,106 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let username = localStorage.getItem("chat_username");
   const loginScreen = document.getElementById("login-screen");
   const chatScreen = document.getElementById("chat-screen");
   const chatContainer = document.getElementById("chat-container");
+  const nameInput = document.getElementById("name-input");
   const msgInput = document.getElementById("msg-input");
   const sendBtn = document.getElementById("send-btn");
-  const usersNum = document.getElementById("users-num");
+  const userCount = document.getElementById("user-count");
 
-  // Login Logica
+  let username = localStorage.getItem("chat_user");
+
+  // Check of er al een naam is
+  if (username) {
+    nameInput.value = username;
+  }
+
+  // LOGIN FUNCTIE
   document.getElementById("login-btn").onclick = () => {
-    const val = document.getElementById("name-input").value.trim();
-    if(val.length < 2) return alert("Naam te kort!");
-    username = val;
-    localStorage.setItem("chat_username", val);
-    showChat();
+    const name = nameInput.value.trim();
+    if (name.length < 2) return alert("Kies een langere naam");
+    
+    username = name;
+    localStorage.setItem("chat_user", name);
+    startApp();
   };
 
-  function showChat() {
+  async function startApp() {
     loginScreen.style.display = "none";
     chatScreen.style.display = "flex";
-    initPresence();
+
+    // Zet jezelf op online
+    await setDoc(doc(db, "online", username), {
+      name: username,
+      active: true
+    });
+
+    loadMessages();
+    loadOnlineUsers();
   }
 
-  // Als we al een naam hebben, direct naar chat
-  if(username) {
-    document.getElementById("name-input").value = username;
+  // ONLINE GEBRUIKERS BIJHOUDEN
+  function loadOnlineUsers() {
+    onSnapshot(collection(db, "online"), (snap) => {
+      userCount.innerText = snap.size;
+    });
   }
 
-  // Aanwezigheid (Simpel)
-  async function initPresence() {
-    await setDoc(doc(db, "online", username), { name: username, lastSeen: serverTimestamp() });
-  }
+  // BERICHTEN LADEN
+  function loadMessages() {
+    const q = query(collection(db, "messages"), orderBy("time", "asc"), limit(50));
+    
+    onSnapshot(q, (snap) => {
+      chatContainer.innerHTML = "";
+      snap.forEach((d) => {
+        const data = d.data();
+        const isMe = data.name === username;
+        
+        // Tijd omzetten naar leesbaar formaat
+        let time = "";
+        if(data.time) {
+          const d = data.time.toDate();
+          time = d.getHours() + ":" + d.getMinutes().toString().padStart(2, '0');
+        }
 
-  onSnapshot(query(collection(db, "online")), snap => {
-    usersNum.innerText = snap.size;
-  });
-
-  // Berichten ophalen
-  const q = query(collection(db, "messages"), orderBy("time", "asc"), limit(50));
-  onSnapshot(q, snap => {
-    chatContainer.innerHTML = "";
-    snap.forEach(d => {
-      const data = d.data();
-      const isMe = data.name === username;
-      const timeStr = data.time ? new Date(data.time.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
-
-      const msgHtml = `
-        <div class="message-wrapper ${isMe ? 'me' : ''}">
-          <div class="msg-header">
-            <span class="username">${data.name}</span>
-            <span class="timestamp">${timeStr}</span>
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `msg-wrapper ${isMe ? 'me' : ''}`;
+        msgDiv.innerHTML = `
+          <div class="msg-info">
+            <span class="msg-name">${data.name}</span>
+            <span class="msg-time">${time}</span>
           </div>
           <div class="bubble">${data.text}</div>
-        </div>
-      `;
-      chatContainer.innerHTML += msgHtml;
+        `;
+        chatContainer.appendChild(msgDiv);
+      });
+      // Scroll naar beneden
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     });
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  });
+  }
 
-  // Berichten versturen
-  sendBtn.onclick = async () => {
+  // BERICHT VERSTUREN
+  async function sendMessage() {
     const text = msgInput.value.trim();
-    if(!text) return;
+    if (!text) return;
 
-    msgInput.value = "";
-    await addDoc(collection(db, "messages"), {
-      name: username,
-      text: text,
-      time: serverTimestamp()
-    });
-  };
+    msgInput.value = ""; // Maak leeg voor snelheid
 
-  // Enter toets ondersteuning
-  msgInput.onkeypress = (e) => { if(e.key === "Enter") sendBtn.click(); };
+    try {
+      await addDoc(collection(db, "messages"), {
+        name: username,
+        text: text,
+        time: serverTimestamp()
+      });
+    } catch (e) {
+      alert("Fout bij verzenden!");
+    }
+  }
+
+  sendBtn.onclick = sendMessage;
+  msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
 
 </script>
 </body>
 </html>
-
