@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>🌍 World Chat</title>
+<title>🌍 World Chat Pro</title>
 <style>
   :root { 
     --bg: #0d0d0d; 
@@ -34,31 +34,21 @@
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   }
 
-  .login-card h1 { 
-    margin: 0 0 30px 0; font-size: 2rem; color: var(--accent);
-    letter-spacing: -1px;
-  }
+  .login-card h1 { margin: 0 0 30px 0; font-size: 2.2rem; color: var(--accent); letter-spacing: -1px; }
 
   input#username-input { 
     width: 100%; background: #000; border: 1px solid #333; 
     border-radius: 16px; color: white; padding: 18px; 
-    font-size: 16px; outline: none; margin-bottom: 20px;
-    transition: all 0.3s ease;
-    text-align: center;
+    font-size: 16px; outline: none; margin-bottom: 20px; text-align: center;
   }
 
-  input#username-input:focus { 
-    border-color: var(--accent); background: var(--input-focus);
-  }
+  input#username-input:focus { border-color: var(--accent); background: var(--input-focus); }
 
   #start-btn { 
     width: 100%; padding: 18px; background: var(--accent); 
     border: none; border-radius: 16px; font-weight: bold; 
     font-size: 1rem; cursor: pointer; color: #000;
-    transition: transform 0.2s active;
   }
-
-  #start-btn:active { transform: scale(0.96); }
 
   /* --- CHAT INTERFACE --- */
   #app { display: flex; flex-direction: column; height: 100vh; height: -webkit-fill-available; }
@@ -108,7 +98,7 @@
 <div id="login-screen">
   <div class="login-card">
     <h1>🌍 World Chat</h1>
-    <input type="text" id="username-input" placeholder="What's your name?" maxlength="15" autocomplete="off">
+    <input type="text" id="username-input" placeholder="Enter your name..." maxlength="15" autocomplete="off">
     <button id="start-btn">Join Chat</button>
   </div>
 </div>
@@ -139,9 +129,29 @@
   const db = getFirestore(app);
   let user = localStorage.getItem("chat_user");
 
+  // --- COMPREHENSIVE WORD FILTER ---
+  // Ik heb hier de belangrijkste woorden alvast ingezet
+  const bannedWords = ["nigger", "kanker", "kkr", "kut", "neger", "hoer", "niga", "cancer", "asshole", "bitch", "fuck"];
+
+  function filterText(text) {
+    let filtered = text;
+    bannedWords.forEach(word => {
+      const regex = new RegExp("\\b" + word + "\\b", "gi");
+      filtered = filtered.replace(regex, "****");
+    });
+    return filtered;
+  }
+
+  function hasBannedWord(text) {
+    return bannedWords.some(word => text.toLowerCase().includes(word.toLowerCase()));
+  }
+
+  // --- APP LOGIC ---
   document.getElementById("start-btn").onclick = () => {
     const val = document.getElementById("username-input").value.trim();
-    if(val.length < 2) return alert("Your name is too short!");
+    if(val.length < 2) return alert("Name is too short!");
+    if(hasBannedWord(val)) return alert("Name not allowed!");
+    
     user = val;
     localStorage.setItem("chat_user", val);
     location.reload(); 
@@ -155,7 +165,6 @@
     onSnapshot(collection(db, "online"), s => document.getElementById("user-count").innerText = s.size);
     
     const startListening = () => {
-      // Show messages from the last 10 minutes only
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
       const q = query(
         collection(db, "messages"), 
@@ -170,10 +179,10 @@
         container.innerHTML = docs.map(d => {
           const data = d.data();
           const isMe = data.name === user;
-          return `<div class="bubble ${isMe ? 'me' : ''}"><span class="name">${data.name}</span>${data.text}</div>`;
+          return `<div class="bubble ${isMe ? 'me' : ''}"><span class="name">${data.name}</span>${filterText(data.text)}</div>`;
         }).join('');
         container.scrollTop = container.scrollHeight;
-      }, (e) => console.log("Waiting for index..."));
+      }, (e) => console.log("Waiting for database index..."));
     };
 
     startListening();
@@ -184,11 +193,14 @@
     const inp = document.getElementById("msg-input");
     const txt = inp.value.trim();
     if(!txt) return;
+    
+    const cleanText = filterText(txt);
     inp.value = "";
+    
     try {
       await addDoc(collection(db, "messages"), { 
         name: user, 
-        text: txt, 
+        text: cleanText, 
         time: serverTimestamp() 
       });
     } catch(e) { console.error(e); }
@@ -199,3 +211,4 @@
 </script>
 </body>
 </html>
+
