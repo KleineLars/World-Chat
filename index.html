@@ -2,91 +2,121 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🌍 World Chat</title>
+<title>Global Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
   margin: 0;
+  background: #0b0b0b;
+  color: #e5e5e5;
   font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: white;
+}
+
+header {
+  padding: 14px;
+  background: #111;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
 }
 
-#app {
-  width: 100%;
-  max-width: 600px;
-  padding: 20px;
+#room {
+  background: #1c1c1c;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
 }
 
-h1 {
-  text-align: center;
+#users {
+  font-size: 0.9em;
+  opacity: 0.8;
 }
 
 #chat {
-  height: 350px;
+  padding: 15px;
+  height: calc(100vh - 160px);
   overflow-y: auto;
-  background: #020617;
-  border-radius: 8px;
+}
+
+.msg {
+  background: #1a1a1a;
+  border-radius: 14px;
   padding: 10px;
+  margin-bottom: 10px;
+  max-width: 85%;
 }
 
-.message {
-  margin-bottom: 6px;
+.name {
+  font-size: 0.75em;
+  opacity: 0.7;
 }
 
-.system {
-  color: #38bdf8;
-  font-size: 0.9em;
+.time {
+  font-size: 0.65em;
+  opacity: 0.5;
+  margin-left: 6px;
 }
 
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 6px;
-  border: none;
+.spin {
+  animation: spin 2s linear infinite;
 }
 
-button {
-  background: #38bdf8;
-  font-weight: bold;
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.reactions span {
+  margin-right: 6px;
   cursor: pointer;
 }
 
-button:disabled {
-  background: #334155;
+footer {
+  padding: 10px;
+  background: #111;
+  display: flex;
+  gap: 6px;
 }
 
-#top {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 0.9em;
-  color: #94a3b8;
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: #1c1c1c;
+  color: white;
+}
+
+button {
+  background: #2563eb;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: white;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
-<div id="app">
 
-<h1>🌍 World Chat</h1>
-
-<div id="top">
+<header>
+  <select id="room">
+    <option value="global">Global</option>
+    <option value="random">Random</option>
+    <option value="gaming">Gaming</option>
+  </select>
   <div id="users">Online: 0</div>
-  <div id="cooldown"></div>
-</div>
-
-<div id="login"></div>
+</header>
 
 <div id="chat"></div>
 
-<input id="msg" placeholder="Type a message..." disabled>
-<button id="send" disabled>Send</button>
-
-</div>
+<footer>
+  <input id="text" placeholder="Type a message..." disabled>
+  <button id="send" disabled>Send</button>
+</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -104,117 +134,93 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const chatDiv = document.getElementById("chat");
-const msgInput = document.getElementById("msg");
-const sendBtn = document.getElementById("send");
-const cooldownDiv = document.getElementById("cooldown");
-const usersDiv = document.getElementById("users");
-const loginDiv = document.getElementById("login");
+const chat = document.getElementById("chat");
+const input = document.getElementById("text");
+const send = document.getElementById("send");
+const users = document.getElementById("users");
+const roomSel = document.getElementById("room");
 
-let username = localStorage.getItem("username");
-let lastSend = 0;
-const COOLDOWN = 10;
-const BAD_WORDS = ["fuck","shit","bitch","nigger","kanker","hoer"];
+let name = localStorage.getItem("name");
+let color = localStorage.getItem("color") || "#" + Math.floor(Math.random()*16777215).toString(16);
+localStorage.setItem("color", color);
 
-function showLogin() {
-  loginDiv.innerHTML = username
-    ? `<button id="continue">Continue as ${username}</button>
-       <button id="change">Use another name</button>`
-    : `<input id="name" placeholder="Enter username">
-       <button id="start">Start Chat</button>`;
-
-  document.getElementById("continue")?.addEventListener("click", startChat);
-  document.getElementById("change")?.addEventListener("click", () => {
-    localStorage.removeItem("username");
-    username = null;
-    showLogin();
-  });
-
-  document.getElementById("start")?.addEventListener("click", () => {
-    const n = document.getElementById("name").value.trim();
-    if (!n) return alert("Enter a name");
-    username = n;
-    localStorage.setItem("username", n);
-    startChat();
-  });
+while (!name) {
+  name = prompt("Enter your name:");
+  if (name) localStorage.setItem("name", name);
 }
 
-showLogin();
+input.disabled = false;
+send.disabled = false;
 
-async function startChat() {
-  loginDiv.innerHTML = "";
-  msgInput.disabled = false;
-  sendBtn.disabled = false;
-
-  await setDoc(doc(db, "online", username), {
-    name: username,
-    time: serverTimestamp()
-  });
-}
+await setDoc(doc(db, "online", name), { time: serverTimestamp() });
 
 window.addEventListener("beforeunload", async () => {
-  if (username) await deleteDoc(doc(db, "online", username));
+  await deleteDoc(doc(db, "online", name));
 });
 
-const onlineQuery = query(collection(db, "online"));
-onSnapshot(onlineQuery, snap => {
-  usersDiv.innerText = `Online: ${snap.size}`;
+onSnapshot(collection(db, "online"), s => {
+  users.innerText = "Online: " + s.size;
 });
 
-const msgQuery = query(collection(db, "messages"), orderBy("time"));
-onSnapshot(msgQuery, snap => {
-  chatDiv.innerHTML = "";
-  const now = Date.now();
+let lastSend = 0;
+let room = "global";
 
-  snap.forEach(async d => {
-    const data = d.data();
-
-    if (data.time && now - data.time.toMillis() > 1000 * 60 * 60) {
-      await deleteDoc(doc(db, "messages", d.id));
-      return;
-    }
-
-    chatDiv.innerHTML +=
-      `<div class="message"><b>${data.name}:</b> ${data.text}</div>`;
+function loadChat() {
+  chat.innerHTML = "";
+  const q = query(collection(db, "messages", room, "chat"), orderBy("time"));
+  onSnapshot(q, snap => {
+    chat.innerHTML = "";
+    snap.forEach(async d => {
+      const m = d.data();
+      if (m.time && Date.now() - m.time.toMillis() > 3600000) {
+        await deleteDoc(doc(db, "messages", room, "chat", d.id));
+        return;
+      }
+      const div = document.createElement("div");
+      div.className = "msg";
+      if (m.spin) div.classList.add("spin");
+      div.innerHTML = `
+        <div class="name" style="color:${m.color}">
+          ${m.name}<span class="time">${new Date(m.time.toMillis()).toLocaleTimeString()}</span>
+        </div>
+        ${m.text}
+        <div class="reactions">👍 ❤️ 😂 🔥</div>
+      `;
+      chat.appendChild(div);
+    });
+    chat.scrollTop = chat.scrollHeight;
   });
+}
 
-  chatDiv.scrollTop = chatDiv.scrollHeight;
-});
+loadChat();
 
-sendBtn.onclick = async () => {
-  const text = msgInput.value.trim();
-  if (!text) return;
+roomSel.onchange = () => {
+  room = roomSel.value;
+  loadChat();
+};
 
-  for (let w of BAD_WORDS) {
-    if (text.toLowerCase().includes(w)) {
-      return alert("Message blocked (bad language)");
-    }
+send.onclick = async () => {
+  const text = input.value.trim();
+  if (!text || Date.now() - lastSend < 10000) return;
+
+  lastSend = Date.now();
+  input.value = "";
+
+  let spin = false;
+  let msg = text;
+
+  if (text.startsWith("/spin ")) {
+    spin = true;
+    msg = text.replace("/spin ", "");
   }
 
-  const now = Date.now();
-  if (now - lastSend < COOLDOWN * 1000) return;
-
-  lastSend = now;
-  msgInput.value = "";
-
-  await addDoc(collection(db, "messages"), {
-    name: username,
-    text,
+  await addDoc(collection(db, "messages", room, "chat"), {
+    name,
+    text: msg,
+    color,
+    spin,
     time: serverTimestamp()
   });
-
-  let t = COOLDOWN;
-  sendBtn.disabled = true;
-  cooldownDiv.innerText = `Cooldown: ${t}s`;
-
-  const timer = setInterval(() => {
-    t--;
-    cooldownDiv.innerText = t > 0 ? `Cooldown: ${t}s` : "";
-    if (t <= 0) {
-      clearInterval(timer);
-      sendBtn.disabled = false;
-    }
-  }, 1000);
 };
 </script>
 
