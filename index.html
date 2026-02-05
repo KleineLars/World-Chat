@@ -34,6 +34,7 @@
     background: var(--card-bg); padding: 40px 30px; 
     border-radius: 28px; border: 1px solid #222; 
     box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
+    position: relative;
   }
   
   .logo-img { 
@@ -100,7 +101,7 @@
     -webkit-text-fill-color: transparent; 
   }
   
-  /* Input Area & Footer */
+  /* Input Area */
   .input-area-container { 
     background: #0d0d0d; border-top: 1px solid #222; 
     padding-bottom: env(safe-area-inset-bottom); 
@@ -119,9 +120,10 @@
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
   }
   
+  /* Copyright Styling (only for auth screens) */
   .footer-copy { 
-    text-align: center; font-size: 0.7rem; color: #444; 
-    padding-bottom: 8px; font-weight: 500; letter-spacing: 0.5px; 
+    margin-top: 25px; font-size: 0.75rem; color: #555; 
+    font-weight: 500; letter-spacing: 0.5px; 
   }
 </style>
 </head>
@@ -134,6 +136,7 @@
     <button id="google-btn" class="btn btn-google">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
     </button>
+    <div class="footer-copy">© Kleine_Lars 2026</div>
   </div>
 </div>
 
@@ -143,6 +146,7 @@
     <p style="color: #888; margin-bottom: 20px;">This name is permanent and unique.</p>
     <input type="text" id="username-input" placeholder="Enter username..." maxlength="15" autocomplete="off">
     <button id="save-username-btn" class="btn btn-primary">Claim Username</button>
+    <div class="footer-copy">© Kleine_Lars 2026</div>
   </div>
 </div>
 
@@ -162,14 +166,13 @@
       <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
       <button id="send-btn">➔</button>
     </div>
-    <div class="footer-copy">© Kleine_Lars 2026</div>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, doc, getDoc, setDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
@@ -185,16 +188,14 @@
   let currentUser = null;
   let currentUsername = null;
 
-  // --- LOGIN LOGIC ---
+  // Login
   document.getElementById("google-btn").onclick = () => signInWithRedirect(auth, provider);
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
       document.getElementById("login-screen").style.display = "none";
-      
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      
       if (userDoc.exists()) {
         currentUsername = userDoc.data().username;
         startChat();
@@ -204,49 +205,33 @@
     }
   });
 
-  // --- CLAIM USERNAME ---
+  // Name Claim
   document.getElementById("save-username-btn").onclick = async () => {
     const input = document.getElementById("username-input").value.trim().toLowerCase();
-    if (input.length < 3) return alert("Name too short (min. 3 chars)!");
-
+    if (input.length < 3) return alert("Min. 3 characters!");
     try {
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(db, async (t) => {
         const nameRef = doc(db, "usernames", input);
-        const nameSnap = await transaction.get(nameRef);
-
-        if (nameSnap.exists()) {
-          throw "This name is already taken!";
-        }
-
-        transaction.set(nameRef, { uid: currentUser.uid });
-        transaction.set(doc(db, "users", currentUser.uid), { username: input });
+        if ((await t.get(nameRef)).exists()) throw "Taken!";
+        t.set(nameRef, { uid: currentUser.uid });
+        t.set(doc(db, "users", currentUser.uid), { username: input });
       });
-
       currentUsername = input;
       document.getElementById("username-screen").style.display = "none";
       startChat();
-    } catch (e) {
-      alert(e);
-    }
+    } catch (e) { alert(e); }
   };
 
-  // --- CHAT LOGIC ---
   function startChat() {
     document.getElementById("app").style.display = "flex";
-    
-    // Update online status
     setDoc(doc(db, "online", currentUser.uid), { name: currentUsername, lastSeen: serverTimestamp() });
     onSnapshot(collection(db, "online"), s => document.getElementById("user-count").innerText = s.size);
-
-    // Berichten ophalen
     const q = query(collection(db, "messages"), orderBy("time", "desc"), limit(50));
     onSnapshot(q, s => {
       const container = document.getElementById("chat-container");
-      const docs = [...s.docs].reverse();
-      container.innerHTML = docs.map(d => {
+      container.innerHTML = [...s.docs].reverse().map(d => {
         const data = d.data();
-        const isMe = data.uid === currentUser.uid;
-        return `<div class="bubble ${isMe ? 'me' : ''}"><span class="name">${data.name}</span>${data.text}</div>`;
+        return `<div class="bubble ${data.uid === currentUser.uid ? 'me' : ''}"><span class="name">${data.name}</span>${data.text}</div>`;
       }).join('');
       container.scrollTop = container.scrollHeight;
     });
@@ -255,16 +240,9 @@
   async function send() {
     const inp = document.getElementById("msg-input");
     const txt = inp.value.trim();
-    if(!txt || !currentUser) return;
+    if(!txt) return;
     inp.value = "";
-    try {
-      await addDoc(collection(db, "messages"), { 
-        uid: currentUser.uid,
-        name: currentUsername, 
-        text: txt, 
-        time: serverTimestamp() 
-      });
-    } catch(e) { console.error("Error sending:", e); }
+    await addDoc(collection(db, "messages"), { uid: currentUser.uid, name: currentUsername, text: txt, time: serverTimestamp() });
   }
 
   document.getElementById("send-btn").onclick = send;
