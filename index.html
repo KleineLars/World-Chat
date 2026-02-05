@@ -3,7 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
 <title>🌍 World Chat</title>
+<meta name="title" content="World Chat">
+<meta name="description" content="Connect instantly with people worldwide. Join the conversation now!">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kleinelars.github.io/World-Chat/">
+<meta property="og:title" content="🌍 World Chat">
+<meta property="og:description" content="Real-time global messaging. Fast, secure, and unique usernames.">
+<meta property="og:image" content="https://kleinelars.github.io/World-Chat/1000015853.png">
+<meta name="theme-color" content="#4ade80">
+
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:title" content="World Chat">
+<meta property="twitter:description" content="Real-time global messaging.">
+<meta property="twitter:image" content="https://kleinelars.github.io/World-Chat/1000015853.png">
+
 <style>
   :root { 
     --bg: #0d0d0d; 
@@ -20,34 +36,31 @@
   .logo-img { width: 80px; height: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.3)); }
   h1 { margin: 0 0 20px 0; font-size: 1.8rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
   
-  input { width: 100%; background: #000; border: 1px solid #333; border-radius: 16px; color: white; padding: 18px; font-size: 16px; outline: none; margin-bottom: 20px; text-align: center; transition: 0.3s; }
-  input:focus { border-color: var(--logo-green); }
-
+  input { width: 100%; background: #000; border: 1px solid #333; border-radius: 16px; color: white; padding: 18px; font-size: 16px; outline: none; margin-bottom: 20px; text-align: center; }
   .btn { width: 100%; padding: 18px; border: none; border-radius: 16px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; }
   .btn-google { background: white; color: black; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .btn-primary { background: var(--accent-gradient); color: #000; }
-  .btn-logout { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 12px; font-size: 0.8rem; width: auto; }
-  .btn:active { transform: scale(0.96); }
-
+  .btn-logout { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 12px; font-size: 0.8rem; width: auto; }
+  
   #app { display: flex; flex-direction: column; height: 100vh; }
   header { padding: env(safe-area-inset-top) 20px 15px 20px; background: rgba(17, 17, 17, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-  #chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #080808; }
+  #chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
   .bubble { background: #161616; padding: 12px 16px; border-radius: 18px; border-top-left-radius: 4px; border: 1px solid #222; max-width: 85%; align-self: flex-start; word-wrap: break-word; }
   .me { align-self: flex-end; border-top-left-radius: 18px; border-top-right-radius: 4px; background: #222; }
   .name { font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; display: block; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .input-area { padding: 12px 15px calc(12px + env(safe-area-inset-bottom)) 15px; background: #0d0d0d; border-top: 1px solid #222; display: flex; gap: 12px; }
-  #msg-input { flex: 1; background: #161616; border-radius: 20px; padding: 14px 20px; border: 1px solid #333; margin: 0; text-align: left; }
-  #send-btn { background: var(--accent-gradient); width: 48px; height: 48px; border-radius: 50%; border: none; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; }
+  #msg-input { flex: 1; background: #161616; border-radius: 20px; padding: 14px 20px; border: 1px solid #333; text-align: left; }
+  #send-btn { background: var(--accent-gradient); width: 48px; height: 48px; border-radius: 50%; border: none; font-size: 1.2rem; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div id="login-screen" class="auth-screen">
   <div class="auth-card">
-    <img src="1000015853.png" class="logo-img" alt="Logo">
+    <img src="1000015853.png" class="logo-img">
     <h1>WORLD CHAT</h1>
     <button id="google-btn" class="btn btn-google">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="G"> Sign in with Google
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
     </button>
   </div>
 </div>
@@ -56,7 +69,7 @@
   <div class="auth-card">
     <h1>Choose Name</h1>
     <p style="color: #888; margin-bottom: 20px;">This name is permanent and unique.</p>
-    <input type="text" id="username-input" placeholder="Username..." maxlength="15">
+    <input type="text" id="username-input" placeholder="Enter username..." maxlength="15">
     <button id="save-username-btn" class="btn btn-primary">Claim Username</button>
   </div>
 </div>
@@ -64,7 +77,7 @@
 <div id="app" style="display:none">
   <header>
     <div style="display:flex; align-items:center; gap:10px;">
-        <img src="1000015853.png" width="30" alt="Logo">
+        <img src="1000015853.png" width="30">
         <b style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">WORLD CHAT</b>
     </div>
     <button id="logout-btn" class="btn btn-logout">Logout</button>
@@ -96,22 +109,17 @@
   let currentUsername = null;
   let unsubscribeChat = null;
 
-  // --- AUTH LOGIC ---
+  // Login & Logout
   document.getElementById("google-btn").onclick = () => signInWithPopup(auth, provider);
-
   document.getElementById("logout-btn").onclick = () => {
-    if(confirm("Are you sure you want to log out?")) {
-      signOut(auth).then(() => location.reload());
-    }
+    if(confirm("Logout from World Chat?")) signOut(auth).then(() => location.reload());
   };
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
       document.getElementById("login-screen").style.display = "none";
-      
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      
       if (userDoc.exists()) {
         currentUsername = userDoc.data().username;
         startChat();
@@ -119,61 +127,44 @@
         document.getElementById("username-screen").style.display = "flex";
       }
     } else {
-        document.getElementById("app").style.display = "none";
-        document.getElementById("login-screen").style.display = "flex";
+      document.getElementById("app").style.display = "none";
+      document.getElementById("login-screen").style.display = "flex";
     }
   });
 
-  // --- USERNAME CLAIM LOGIC ---
+  // Username logic
   document.getElementById("save-username-btn").onclick = async () => {
     const input = document.getElementById("username-input").value.trim().toLowerCase();
-    if (input.length < 3) return alert("Name is too short!");
-    if (input.length > 15) return alert("Name is too long!");
-
+    if (input.length < 3) return alert("Too short!");
     try {
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(db, async (t) => {
         const nameRef = doc(db, "usernames", input);
-        const nameSnap = await transaction.get(nameRef);
-
-        if (nameSnap.exists()) {
-          throw "This name is already taken!";
-        }
-
-        transaction.set(nameRef, { uid: currentUser.uid });
-        transaction.set(doc(db, "users", currentUser.uid), { username: input });
+        const nameSnap = await t.get(nameRef);
+        if (nameSnap.exists()) throw "Name taken!";
+        t.set(nameRef, { uid: currentUser.uid });
+        t.set(doc(db, "users", currentUser.uid), { username: input });
       });
-
       currentUsername = input;
       document.getElementById("username-screen").style.display = "none";
       startChat();
-    } catch (e) {
-      alert(e);
-    }
+    } catch (e) { alert(e); }
   };
 
-  // --- CHAT LOGIC ---
+  // Chat logic
   function startChat() {
     document.getElementById("app").style.display = "flex";
-    
     const q = query(collection(db, "messages"), orderBy("time", "desc"), limit(50));
-    
     if (unsubscribeChat) unsubscribeChat();
-
     unsubscribeChat = onSnapshot(q, s => {
       const container = document.getElementById("chat-container");
       const docs = [...s.docs].reverse();
-      
       const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
-
       container.innerHTML = docs.map(d => {
         const data = d.data();
         const isMe = data.uid === currentUser.uid;
         return `<div class="bubble ${isMe ? 'me' : ''}"><span class="name">${data.name}</span>${data.text}</div>`;
       }).join('');
-
-      if (isAtBottom) {
-        container.scrollTop = container.scrollHeight;
-      }
+      if (isAtBottom) container.scrollTop = container.scrollHeight;
     });
   }
 
@@ -182,16 +173,9 @@
     const txt = inp.value.trim();
     if(!txt) return;
     inp.value = "";
-    try {
-        await addDoc(collection(db, "messages"), { 
-          uid: currentUser.uid,
-          name: currentUsername, 
-          text: txt, 
-          time: serverTimestamp() 
-        });
-    } catch (e) {
-        console.error("Error sending message: ", e);
-    }
+    await addDoc(collection(db, "messages"), { 
+      uid: currentUser.uid, name: currentUsername, text: txt, time: serverTimestamp() 
+    });
   }
 
   document.getElementById("send-btn").onclick = send;
@@ -199,4 +183,3 @@
 </script>
 </body>
 </html>
-
