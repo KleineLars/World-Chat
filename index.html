@@ -22,7 +22,7 @@
     overflow: hidden; position: fixed; 
   }
 
-  /* Auth Screens (Login & Username) */
+  /* Auth Screens */
   .auth-screen { 
     position: fixed; inset: 0; background: var(--bg); 
     display: flex; flex-direction: column; justify-content: center; 
@@ -34,7 +34,6 @@
     background: var(--card-bg); padding: 40px 30px; 
     border-radius: 28px; border: 1px solid #222; 
     box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
-    position: relative;
   }
   
   .logo-img { 
@@ -69,7 +68,7 @@
   .btn:active { transform: scale(0.96); }
 
   /* Chat Interface */
-  #app { display: flex; flex-direction: column; height: 100vh; height: -webkit-fill-available; }
+  #app { display: none; flex-direction: column; height: 100vh; height: -webkit-fill-available; }
   
   header { 
     padding: env(safe-area-inset-top) 20px 15px 20px; 
@@ -101,7 +100,6 @@
     -webkit-text-fill-color: transparent; 
   }
   
-  /* Input Area */
   .input-area-container { 
     background: #0d0d0d; border-top: 1px solid #222; 
     padding-bottom: env(safe-area-inset-bottom); 
@@ -120,7 +118,6 @@
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
   }
   
-  /* Copyright Styling (only for auth screens) */
   .footer-copy { 
     margin-top: 25px; font-size: 0.75rem; color: #555; 
     font-weight: 500; letter-spacing: 0.5px; 
@@ -150,7 +147,7 @@
   </div>
 </div>
 
-<div id="app" style="display:none">
+<div id="app">
   <header>
     <div style="display:flex; align-items:center; gap:10px;">
         <img src="1000015853.png" width="30" alt="Logo">
@@ -172,7 +169,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit, doc, getDoc, setDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
@@ -188,31 +185,38 @@
   let currentUser = null;
   let currentUsername = null;
 
-  // Login
+  // Verwerk de login redirect direct bij het laden van de pagina
+  getRedirectResult(auth).catch((error) => console.error("Login redirect error:", error.message));
+
   document.getElementById("google-btn").onclick = () => signInWithRedirect(auth, provider);
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
-      document.getElementById("login-screen").style.display = "none";
       const userDoc = await getDoc(doc(db, "users", user.uid));
+      
       if (userDoc.exists()) {
         currentUsername = userDoc.data().username;
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("username-screen").style.display = "none";
         startChat();
       } else {
+        document.getElementById("login-screen").style.display = "none";
         document.getElementById("username-screen").style.display = "flex";
       }
+    } else {
+      document.getElementById("login-screen").style.display = "flex";
+      document.getElementById("app").style.display = "none";
     }
   });
 
-  // Name Claim
   document.getElementById("save-username-btn").onclick = async () => {
     const input = document.getElementById("username-input").value.trim().toLowerCase();
     if (input.length < 3) return alert("Min. 3 characters!");
     try {
       await runTransaction(db, async (t) => {
         const nameRef = doc(db, "usernames", input);
-        if ((await t.get(nameRef)).exists()) throw "Taken!";
+        if ((await t.get(nameRef)).exists()) throw "Name already taken!";
         t.set(nameRef, { uid: currentUser.uid });
         t.set(doc(db, "users", currentUser.uid), { username: input });
       });
@@ -226,6 +230,7 @@
     document.getElementById("app").style.display = "flex";
     setDoc(doc(db, "online", currentUser.uid), { name: currentUsername, lastSeen: serverTimestamp() });
     onSnapshot(collection(db, "online"), s => document.getElementById("user-count").innerText = s.size);
+    
     const q = query(collection(db, "messages"), orderBy("time", "desc"), limit(50));
     onSnapshot(q, s => {
       const container = document.getElementById("chat-container");
@@ -240,7 +245,7 @@
   async function send() {
     const inp = document.getElementById("msg-input");
     const txt = inp.value.trim();
-    if(!txt) return;
+    if(!txt || !currentUser) return;
     inp.value = "";
     await addDoc(collection(db, "messages"), { uid: currentUser.uid, name: currentUsername, text: txt, time: serverTimestamp() });
   }
