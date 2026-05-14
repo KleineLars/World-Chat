@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+<title>Smartschool XX Chat</title>
+<meta name="title" content="Smartschool XX Chat">
+<meta name="description" content="Connect instantly in Smartschool XX Chat.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kleinelars.github.io/World-Chat/">
+<meta property="og:title" content="Smartschool XX Chat">
+<meta property="og:description" content="Real-time messaging with moderator roles, tags, and manual word bans.">
+<meta property="og:image" content="https://kleinelars.github.io/World-Chat/1000015853.png">
+<meta name="theme-color" content="#4ade80">
+
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:title" content="Smartschool XX Chat">
+<meta property="twitter:description" content="Real-time messaging for Smartschool XX.">
+<meta property="twitter:image" content="https://kleinelars.github.io/World-Chat/1000015853.png">
+
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --logo-green: #4ade80;
+    --logo-blue: #3b82f6;
+    --accent-gradient: linear-gradient(135deg, #4ade80 0%, #3b82f6 100%);
+    --card-bg: #161616;
+    --panel-bg: #111;
+    --line: #252525;
+    --text-muted: #9ca3af;
+    --danger: #ff5a5a;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body,
+  html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100dvh;
+    background: var(--bg);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+    position: fixed;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  .auth-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 25px;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    background: var(--card-bg);
+    padding: 38px 30px;
+    border-radius: 24px;
+    border: 1px solid #222;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .brand-logo {
+    width: 82px;
+    height: 82px;
+    border-radius: 22px;
+    margin: 0 auto 20px;
+    display: grid;
+    place-items: center;
+    background: var(--accent-gradient);
+    color: #06130b;
+    font-weight: 900;
+    font-size: 1.35rem;
+    box-shadow: 0 0 24px rgba(74, 222, 128, 0.24);
+    overflow: hidden;
+  }
+
+  .brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .brand-logo span {
+    display: none;
+  }
+
+  .brand-logo.no-image span {
+    display: block;
+  }
+
+  h1 {
+    margin: 0 0 22px;
+    font-size: 1.75rem;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 850;
+    letter-spacing: 0;
+  }
+
+  .hint {
+    margin: -8px 0 20px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  input,
+  select {
+    width: 100%;
+    background: #050505;
+    border: 1px solid #333;
+    border-radius: 14px;
+    color: white;
+    padding: 15px 16px;
+    font-size: 16px;
+    outline: none;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: var(--logo-green);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+  }
+
+  .auth-card input {
+    margin-bottom: 18px;
+    text-align: center;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn-google,
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+  }
+
+  .btn-google {
+    background: white;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-primary {
+    background: var(--accent-gradient);
+    color: #06130b;
+  }
+
+  .btn-ghost {
+    background: #161616;
+    color: white;
+    border: 1px solid #303030;
+  }
+
+  .btn-danger {
+    background: rgba(255, 90, 90, 0.12);
+    color: var(--danger);
+    border: 1px solid rgba(255, 90, 90, 0.55);
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  header {
+    padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+    background: rgba(17, 17, 17, 0.86);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #222;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+  }
+
+  .mini-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: var(--accent-gradient);
+    color: #06130b;
+    font-size: 0.72rem;
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+
+  .mini-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mini-logo span {
+    display: none;
+  }
+
+  .mini-logo.no-image span {
+    display: block;
+  }
+
+  .brand-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #161616;
+    color: white;
+    border: 1px solid #303030;
+    cursor: pointer;
+    font-weight: 900;
+  }
+
+  .logout-btn {
+    padding: 11px 14px;
+    width: auto;
+    font-size: 0.86rem;
+  }
+
+  #chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bubble {
+    position: relative;
+    background: #161616;
+    padding: 12px 14px;
+    border-radius: 18px;
+    border-top-left-radius: 5px;
+    border: 1px solid #242424;
+    max-width: min(86%, 680px);
+    align-self: flex-start;
+    word-wrap: break-word;
+    line-height: 1.38;
+  }
+
+  .me {
+    align-self: flex-end;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 5px;
+    background: #202020;
+  }
+
+  .message-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 5px;
+    min-width: 0;
+  }
+
+  .name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 0.77rem;
+    font-weight: 900;
+  }
+
+  .tag {
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
+    white-space: nowrap;
+  }
+
+  .tag-owner {
+    background: linear-gradient(135deg, #facc15, #fb7185);
+    color: #12080a;
+  }
+
+  .tag-main_dev {
+    background: linear-gradient(135deg, #60a5fa, #34d399);
+    color: #04110d;
+  }
+
+  .tag-mod {
+    background: linear-gradient(135deg, #c084fc, #f472b6);
+    color: #120714;
+  }
+
+  .message-text {
+    white-space: pre-wrap;
+  }
+
+  .delete-message {
+    width: 28px;
+    height: 28px;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    display: none;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 90, 90, 0.45);
+    background: #1f1111;
+    color: var(--danger);
+    cursor: pointer;
+    font-weight: 900;
+  }
+
+  .bubble:hover .delete-message {
+    display: grid;
+    place-items: center;
+  }
+
+  .input-area {
+    padding: 12px 15px calc(12px + env(safe-area-inset-bottom));
+    background: #0d0d0d;
+    border-top: 1px solid #222;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .color-control {
+    width: 46px;
+    height: 46px;
+    padding: 4px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    background: #161616;
+    cursor: pointer;
+  }
+
+  .color-control::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  .color-control::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+  }
+
+  #msg-input {
+    min-width: 0;
+    background: #161616;
+    border-radius: 20px;
+    padding: 14px 18px;
+    border: 1px solid #333;
+  }
+
+  #send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent-gradient);
+    color: #06130b;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .mod-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(430px, 100vw);
+    z-index: 900;
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+    background: rgba(13, 13, 13, 0.98);
+    border-left: 1px solid #252525;
+    transform: translateX(105%);
+    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: -18px 0 36px rgba(0, 0, 0, 0.42);
+  }
+
+  .mod-panel.open {
+    transform: translateX(0);
+  }
+
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .panel-title {
+    font-size: 1.18rem;
+    font-weight: 900;
+  }
+
+  .panel-scroll {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-right: 2px;
+  }
+
+  .panel-section {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 14px;
+    background: var(--panel-bg);
+  }
+
+  .panel-section h2 {
+    margin: 0 0 12px;
+    font-size: 0.92rem;
+  }
+
+  .word-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .word-form button {
+    padding: 0 15px;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .user-row,
+  .word-row {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #242424;
+    border-radius: 14px;
+    background: #161616;
+  }
+
+  .user-row {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .user-meta {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+
+  .user-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 850;
+  }
+
+  .status {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  .row-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .row-actions input[type="color"] {
+    width: 44px;
+    height: 44px;
+    padding: 3px;
+  }
+
+  .small-btn {
+    min-height: 40px;
+    padding: 9px 12px;
+    font-size: 0.82rem;
+  }
+
+  .word-row {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .empty {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 520px) {
+    header {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    .brand-title {
+      max-width: 44vw;
+    }
+
+    .logout-btn {
+      padding: 10px 11px;
+    }
+
+    .bubble {
+      max-width: 92%;
+    }
+
+    .row-actions {
+      grid-template-columns: 1fr 44px;
+    }
+
+    .row-actions .ban-toggle {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="brand-logo">
+      <img src="1000015853.png" alt="" onerror="this.parentElement.classList.add('no-image'); this.remove();">
+      <span>SX</span>
+    </div>
+    <h1>SMARTSCHOOL XX CHAT</h1>
+    <button id="google-btn" class="btn btn-google">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width="20" height="20">
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<div id="username-screen" class="auth-screen" style="display:none">
+  <div class="auth-card">
+    <h1>Choose Name</h1>
+    <p class="hint">This name is permanent and unique.</p>
+    <input type="text" id="username-input" placeholder="Enter username..." maxlength="15" autocomplete="off">
+    <button id="save-username-btn" class="btn btn-primary">Claim Username</button>
+  </div>
+</div>
+
+<div id="banned-screen" class="auth-screen" style="display:none">
+  <div class="auth-card">
+    <h1>Account Banned</h1>
+    <p class="hint">A moderator has blocked this account from using Smartschool XX Chat.</p>
+    <button id="banned-logout-btn" class="btn btn-danger">Logout</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="brand">
+      <div class="mini-logo">
+        <img src="1000015853.png" alt="" onerror="this.parentElement.classList.add('no-image'); this.remove();">
+        <span>SX</span>
+      </div>
+      <span class="brand-title">SMARTSCHOOL XX CHAT</span>
+    </div>
+    <div class="header-actions">
+      <button id="mod-toggle" class="icon-btn" type="button" title="Moderator panel" style="display:none">M</button>
+      <button id="logout-btn" class="btn btn-danger logout-btn" type="button">Logout</button>
+    </div>
+  </header>
+
+  <div id="chat-container"></div>
+
+  <div class="input-area">
+    <input type="color" id="name-color" class="color-control" title="Name color" value="#4ade80">
+    <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off" maxlength="500">
+    <button id="send-btn" type="button" title="Send">&gt;</button>
+  </div>
+</div>
+
+<aside id="mod-panel" class="mod-panel" aria-hidden="true">
+  <div class="panel-head">
+    <div class="panel-title">Moderator</div>
+    <button id="close-mod" class="icon-btn" type="button" title="Close">X</button>
+  </div>
+  <div class="panel-scroll">
+    <section class="panel-section">
+      <h2>Users</h2>
+      <div id="user-list" class="list"></div>
+    </section>
+    <section class="panel-section">
+      <h2>Manual banned words</h2>
+      <form id="word-form" class="word-form">
+        <input type="text" id="word-input" placeholder="Word..." maxlength="40" autocomplete="off">
+        <button class="btn btn-primary small-btn" type="submit">Add</button>
+      </form>
+      <div id="word-list" class="list"></div>
+    </section>
+  </div>
+</aside>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp,
+    query,
+    orderBy,
+    onSnapshot,
+    limit,
+    doc,
+    getDoc,
+    runTransaction,
+    updateDoc,
+    setDoc,
+    deleteDoc
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCgct_ZuSu3zy8q8i6fxXtIlRBSSKK7vng",
+    authDomain: "world-chat-6dd70.firebaseapp.com",
+    projectId: "world-chat-6dd70",
+  };
+
+  const OWNER_EMAILS = [
+    "your-google-email@example.com"
+  ];
+  const MAIN_DEV_EMAILS = [
+    "your-main-dev-email@example.com"
+  ];
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const ROLE_LABELS = {
+    owner: "Owner",
+    main_dev: "Main Dev",
+    mod: "Mod",
+    member: ""
+  };
+  const ROLE_RANK = {
+    member: 0,
+    mod: 1,
+    main_dev: 2,
+    owner: 3
+  };
+  const DEFAULT_NAME_COLOR = "#4ade80";
+
+  let currentUser = null;
+  let currentProfile = null;
+  let unsubscribeChat = null;
+  let unsubscribeMe = null;
+  let unsubscribeUsers = null;
+  let unsubscribeWords = null;
+  let lastMessageDocs = [];
+  let usersByUid = new Map();
+  let bannedWords = new Map();
+
+  const $ = (id) => document.getElementById(id);
+  const screens = ["login-screen", "username-screen", "banned-screen", "app"];
+
+  function showOnly(id) {
+    screens.forEach((screenId) => {
+      $(screenId).style.display = screenId === id ? (id === "app" ? "flex" : "flex") : "none";
+    });
+  }
+
+  function hideScreens() {
+    screens.forEach((screenId) => {
+      $(screenId).style.display = "none";
+    });
+  }
+
+  function normalizeRole(role) {
+    return ROLE_RANK[role] === undefined ? "member" : role;
+  }
+
+  function currentRole() {
+    return normalizeRole(currentProfile?.role);
+  }
+
+  function canModerate() {
+    return ROLE_RANK[currentRole()] >= ROLE_RANK.mod;
+  }
+
+  function canManageRoles() {
+    return ROLE_RANK[currentRole()] >= ROLE_RANK.main_dev;
+  }
+
+  function canControlUser(target) {
+    if (!currentProfile || !target || target.uid === currentProfile.uid) return false;
+    return ROLE_RANK[currentRole()] > ROLE_RANK[normalizeRole(target.role)];
+  }
+
+  function roleForEmail(email) {
+    const normalized = (email || "").toLowerCase();
+    if (OWNER_EMAILS.map((value) => value.toLowerCase()).includes(normalized)) return "owner";
+    if (MAIN_DEV_EMAILS.map((value) => value.toLowerCase()).includes(normalized)) return "main_dev";
+    return "member";
+  }
+
+  function cleanUsername(value) {
+    return value.trim().toLowerCase();
+  }
+
+  function cleanWord(value) {
+    return value.trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function tagElement(role) {
+    const normalized = normalizeRole(role);
+    const label = ROLE_LABELS[normalized];
+    if (!label) return null;
+    const tag = document.createElement("span");
+    tag.className = `tag tag-${normalized}`;
+    tag.textContent = label;
+    return tag;
+  }
+
+  function userColor(profile) {
+    return /^#[0-9a-fA-F]{6}$/.test(profile?.nameColor || "") ? profile.nameColor : DEFAULT_NAME_COLOR;
+  }
+
+  function openModPanel() {
+    $("mod-panel").classList.add("open");
+    $("mod-panel").setAttribute("aria-hidden", "false");
+  }
+
+  function closeModPanel() {
+    $("mod-panel").classList.remove("open");
+    $("mod-panel").setAttribute("aria-hidden", "true");
+  }
+
+  function stopLiveData() {
+    if (unsubscribeChat) unsubscribeChat();
+    if (unsubscribeMe) unsubscribeMe();
+    if (unsubscribeUsers) unsubscribeUsers();
+    if (unsubscribeWords) unsubscribeWords();
+    unsubscribeChat = null;
+    unsubscribeMe = null;
+    unsubscribeUsers = null;
+    unsubscribeWords = null;
+    lastMessageDocs = [];
+    usersByUid = new Map();
+    bannedWords = new Map();
+    closeModPanel();
+  }
+
+  async function logout() {
+    await signOut(auth);
+    location.reload();
+  }
+
+  $("google-btn").onclick = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      alert(error.message || "Google sign-in failed.");
+    }
+  };
+
+  $("logout-btn").onclick = () => {
+    if (confirm("Logout from Smartschool XX Chat?")) logout();
+  };
+
+  $("banned-logout-btn").onclick = logout;
+  $("mod-toggle").onclick = openModPanel;
+  $("close-mod").onclick = closeModPanel;
+
+  onAuthStateChanged(auth, async (user) => {
+    stopLiveData();
+    currentUser = user;
+    currentProfile = null;
+
+    if (!user) {
+      showOnly("login-screen");
+      return;
+    }
+
+    hideScreens();
+    const userRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userRef);
+
+    if (userDoc.exists()) {
+      currentProfile = { uid: user.uid, ...userDoc.data(), role: normalizeRole(userDoc.data().role) };
+      if (currentProfile.banned) {
+        showOnly("banned-screen");
+        return;
+      }
+      startChat();
+      return;
+    }
+
+    showOnly("username-screen");
+  });
+
+  $("save-username-btn").onclick = async () => {
+    if (!currentUser) return;
+
+    const input = cleanUsername($("username-input").value);
+    if (!/^[a-z0-9_]{3,15}$/.test(input)) {
+      alert("Use 3-15 letters, numbers, or underscores.");
+      return;
+    }
+
+    const initialRole = roleForEmail(currentUser.email);
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const nameRef = doc(db, "usernames", input);
+        const userRef = doc(db, "users", currentUser.uid);
+        const nameSnap = await transaction.get(nameRef);
+        const userSnap = await transaction.get(userRef);
+
+        if (nameSnap.exists()) throw new Error("Name taken.");
+        if (userSnap.exists()) throw new Error("This account already has a username.");
+
+        transaction.set(nameRef, {
+          uid: currentUser.uid,
+          createdAt: serverTimestamp()
+        });
+        transaction.set(userRef, {
+          uid: currentUser.uid,
+          username: input,
+          usernameLower: input,
+          email: currentUser.email || "",
+          role: initialRole,
+          nameColor: DEFAULT_NAME_COLOR,
+          banned: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      });
+
+      currentProfile = {
+        uid: currentUser.uid,
+        username: input,
+        usernameLower: input,
+        email: currentUser.email || "",
+        role: initialRole,
+        nameColor: DEFAULT_NAME_COLOR,
+        banned: false
+      };
+      startChat();
+    } catch (error) {
+      alert(error.message || error);
+    }
+  };
+
+  function startChat() {
+    if (!currentUser || !currentProfile) return;
+
+    showOnly("app");
+    $("name-color").value = userColor(currentProfile);
+    syncModeratorVisibility();
+    listenToCurrentProfile();
+    listenToBannedWords();
+    if (canModerate()) listenToUsers();
+
+    const q = query(collection(db, "messages"), orderBy("time", "desc"), limit(50));
+    unsubscribeChat = onSnapshot(q, (snapshot) => {
+      lastMessageDocs = [...snapshot.docs].reverse();
+      renderMessages();
+    });
+  }
+
+  function listenToCurrentProfile() {
+    unsubscribeMe = onSnapshot(doc(db, "users", currentUser.uid), (snapshot) => {
+      if (!snapshot.exists()) return;
+      currentProfile = { uid: currentUser.uid, ...snapshot.data(), role: normalizeRole(snapshot.data().role) };
+      $("name-color").value = userColor(currentProfile);
+
+      if (currentProfile.banned) {
+        stopLiveData();
+        showOnly("banned-screen");
+        return;
+      }
+
+      syncModeratorVisibility();
+      if (canModerate() && !unsubscribeUsers) listenToUsers();
+      if (!canModerate() && unsubscribeUsers) {
+        unsubscribeUsers();
+        unsubscribeUsers = null;
+        closeModPanel();
+      }
+      renderMessages();
+    });
+  }
+
+  function listenToBannedWords() {
+    unsubscribeWords = onSnapshot(collection(db, "bannedWords"), (snapshot) => {
+      bannedWords = new Map(snapshot.docs.map((item) => [item.id, item.data()]));
+      renderWords();
+    });
+  }
+
+  function listenToUsers() {
+    unsubscribeUsers = onSnapshot(query(collection(db, "users"), orderBy("usernameLower")), (snapshot) => {
+      usersByUid = new Map(snapshot.docs.map((item) => [item.id, { uid: item.id, ...item.data() }]));
+      renderUsers();
+      renderMessages();
+    });
+  }
+
+  function syncModeratorVisibility() {
+    $("mod-toggle").style.display = canModerate() ? "grid" : "none";
+  }
+
+  function renderMessages() {
+    const container = $("chat-container");
+    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
+    const fragment = document.createDocumentFragment();
+
+    lastMessageDocs.forEach((messageDoc) => {
+      const data = messageDoc.data();
+      const profile = usersByUid.get(data.uid) || data;
+      const isMe = data.uid === currentUser?.uid;
+      const bubble = document.createElement("div");
+      bubble.className = `bubble${isMe ? " me" : ""}`;
+
+      const head = document.createElement("div");
+      head.className = "message-head";
+
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = profile.username || data.name || "unknown";
+      name.style.color = userColor(profile);
+      head.appendChild(name);
+
+      const tag = tagElement(profile.role || data.role);
+      if (tag) head.appendChild(tag);
+
+      const text = document.createElement("div");
+      text.className = "message-text";
+      text.textContent = data.text || "";
+
+      bubble.append(head, text);
+
+      if (canModerate()) {
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-message";
+        deleteButton.type = "button";
+        deleteButton.title = "Delete message";
+        deleteButton.textContent = "X";
+        deleteButton.onclick = async () => {
+          if (confirm("Delete this message?")) {
+            await deleteDoc(doc(db, "messages", messageDoc.id));
+          }
+        };
+        bubble.appendChild(deleteButton);
+      }
+
+      fragment.appendChild(bubble);
+    });
+
+    container.replaceChildren(fragment);
+    if (isAtBottom) container.scrollTop = container.scrollHeight;
+  }
+
+  function renderUsers() {
+    const list = $("user-list");
+    if (!canModerate()) {
+      list.replaceChildren();
+      return;
+    }
+
+    const users = [...usersByUid.values()].sort((a, b) => (a.usernameLower || "").localeCompare(b.usernameLower || ""));
+    if (!users.length) {
+      list.innerHTML = '<div class="empty">No users yet.</div>';
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    users.forEach((user) => {
+      const row = document.createElement("div");
+      row.className = "user-row";
+
+      const meta = document.createElement("div");
+      meta.className = "user-meta";
+
+      const userName = document.createElement("span");
+      userName.className = "user-name";
+      userName.style.color = userColor(user);
+      userName.textContent = user.username || "unknown";
+      meta.appendChild(userName);
+
+      const tag = tagElement(user.role);
+      if (tag) meta.appendChild(tag);
+
+      if (user.banned) {
+        const status = document.createElement("span");
+        status.className = "status";
+        status.textContent = "Banned";
+        meta.appendChild(status);
+      }
+
+      row.appendChild(meta);
+
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+
+      const roleSelect = document.createElement("select");
+      ["member", "mod", "main_dev", "owner"].forEach((role) => {
+        const option = document.createElement("option");
+        option.value = role;
+        option.textContent = ROLE_LABELS[role] || "Member";
+        roleSelect.appendChild(option);
+      });
+      roleSelect.value = normalizeRole(user.role);
+      roleSelect.disabled = !canManageRoles() || !canControlUser(user);
+      roleSelect.onchange = async () => {
+        if (!canControlUser(user)) return;
+        const nextRole = roleSelect.value;
+        if (ROLE_RANK[nextRole] >= ROLE_RANK[currentRole()]) {
+          alert("You can only assign roles below your own role.");
+          roleSelect.value = normalizeRole(user.role);
+          return;
+        }
+        await updateDoc(doc(db, "users", user.uid), {
+          role: nextRole,
+          updatedAt: serverTimestamp()
+        });
+      };
+
+      const colorInput = document.createElement("input");
+      colorInput.type = "color";
+      colorInput.value = userColor(user);
+      colorInput.disabled = !canControlUser(user) && user.uid !== currentProfile.uid;
+      colorInput.onchange = async () => {
+        if (!canControlUser(user) && user.uid !== currentProfile.uid) return;
+        await updateDoc(doc(db, "users", user.uid), {
+          nameColor: colorInput.value,
+          updatedAt: serverTimestamp()
+        });
+      };
+
+      const banButton = document.createElement("button");
+      banButton.type = "button";
+      banButton.className = `btn small-btn ban-toggle ${user.banned ? "btn-ghost" : "btn-danger"}`;
+      banButton.textContent = user.banned ? "Unban" : "Ban";
+      banButton.disabled = !canControlUser(user);
+      banButton.onclick = async () => {
+        if (!canControlUser(user)) return;
+        await updateDoc(doc(db, "users", user.uid), {
+          banned: !user.banned,
+          updatedAt: serverTimestamp()
+        });
+      };
+
+      actions.append(roleSelect, colorInput, banButton);
+      row.appendChild(actions);
+      fragment.appendChild(row);
+    });
+
+    list.replaceChildren(fragment);
+  }
+
+  function renderWords() {
+    const list = $("word-list");
+    if (!canModerate()) {
+      list.replaceChildren();
+      return;
+    }
+
+    const words = [...bannedWords.keys()].sort();
+    if (!words.length) {
+      list.innerHTML = '<div class="empty">No words added.</div>';
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    words.forEach((word) => {
+      const row = document.createElement("div");
+      row.className = "word-row";
+
+      const label = document.createElement("span");
+      label.textContent = word;
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "btn btn-danger small-btn";
+      remove.textContent = "Remove";
+      remove.onclick = async () => {
+        await deleteDoc(doc(db, "bannedWords", word));
+      };
+
+      row.append(label, remove);
+      fragment.appendChild(row);
+    });
+
+    list.replaceChildren(fragment);
+  }
+
+  $("word-form").onsubmit = async (event) => {
+    event.preventDefault();
+    if (!canModerate()) return;
+
+    const word = cleanWord($("word-input").value);
+    if (!word || word.length < 2) {
+      alert("Add at least 2 characters.");
+      return;
+    }
+
+    await setDoc(doc(db, "bannedWords", word), {
+      word,
+      createdBy: currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    $("word-input").value = "";
+  };
+
+  $("name-color").onchange = async () => {
+    if (!currentUser || !currentProfile) return;
+    await updateDoc(doc(db, "users", currentUser.uid), {
+      nameColor: $("name-color").value,
+      updatedAt: serverTimestamp()
+    });
+  };
+
+  async function send() {
+    if (!currentUser || !currentProfile) return;
+    if (currentProfile.banned) {
+      alert("This account is banned.");
+      return;
+    }
+
+    const input = $("msg-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const lowered = text.toLowerCase();
+    const blockedWord = [...bannedWords.keys()].find((word) => {
+      const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(^|\\W)${escaped}(?=\\W|$)`, "i").test(lowered);
+    });
+
+    if (blockedWord) {
+      alert("This word is manually blocked by the moderators.");
+      return;
+    }
+
+    input.value = "";
+    await addDoc(collection(db, "messages"), {
+      uid: currentUser.uid,
+      name: currentProfile.username,
+      role: currentProfile.role || "member",
+      nameColor: userColor(currentProfile),
+      text,
+      time: serverTimestamp()
+    });
+  }
+
+  $("send-btn").onclick = send;
+  $("msg-input").onkeydown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      send();
+    }
+  };
+</script>
+</body>
+</html>

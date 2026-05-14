@@ -1,0 +1,153 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function hasProfile() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function role() {
+      return hasProfile() ? ownProfile().data.role : "member";
+    }
+
+    function isMod() {
+      return role() in ["mod", "main_dev", "owner"];
+    }
+
+    function isLead() {
+      return role() in ["main_dev", "owner"];
+    }
+
+    function isOwner() {
+      return role() == "owner";
+    }
+
+    function isConfiguredOwnerEmail() {
+      return signedIn() && request.auth.token.email in [
+        "your-google-email@example.com"
+      ];
+    }
+
+    function isConfiguredMainDevEmail() {
+      return signedIn() && request.auth.token.email in [
+        "your-main-dev-email@example.com"
+      ];
+    }
+
+    function validHexColor(color) {
+      return color is string && color.matches("^#[0-9A-Fa-f]{6}$");
+    }
+
+    function validUserCreate(uid) {
+      return signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          "uid",
+          "username",
+          "usernameLower",
+          "email",
+          "role",
+          "nameColor",
+          "banned",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.username is string
+        && request.resource.data.usernameLower == request.resource.data.username
+        && request.resource.data.username.matches("^[a-z0-9_]{3,15}$")
+        && request.resource.data.email == request.auth.token.email
+        && validHexColor(request.resource.data.nameColor)
+        && request.resource.data.banned == false
+        && (
+          (isConfiguredOwnerEmail() && request.resource.data.role == "owner")
+          || (isConfiguredMainDevEmail() && request.resource.data.role == "main_dev")
+          || (!isConfiguredOwnerEmail() && !isConfiguredMainDevEmail() && request.resource.data.role == "member")
+        );
+    }
+
+    function selfColorOnly(uid) {
+      return signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["nameColor", "updatedAt"])
+        && validHexColor(request.resource.data.nameColor);
+    }
+
+    function modUserUpdate(uid) {
+      return role() == "mod"
+        && request.auth.uid != uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["banned", "nameColor", "updatedAt"])
+        && resource.data.role == "member"
+        && validHexColor(request.resource.data.nameColor);
+    }
+
+    function leadUserUpdate(uid) {
+      return isLead()
+        && request.auth.uid != uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["role", "banned", "nameColor", "updatedAt"])
+        && validHexColor(request.resource.data.nameColor)
+        && request.resource.data.role in ["member", "mod", "main_dev"]
+        && (
+          isOwner()
+          || (
+            role() == "main_dev"
+            && !(resource.data.role in ["owner", "main_dev"])
+            && request.resource.data.role in ["member", "mod"]
+          )
+        );
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if validUserCreate(uid);
+      allow update: if selfColorOnly(uid) || modUserUpdate(uid) || leadUserUpdate(uid);
+      allow delete: if false;
+    }
+
+    match /usernames/{username} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && username.matches("^[a-z0-9_]{3,15}$")
+        && request.resource.data.keys().hasOnly(["uid", "createdAt"])
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /messages/{messageId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && hasProfile()
+        && ownProfile().data.banned == false
+        && request.resource.data.keys().hasOnly(["uid", "name", "role", "nameColor", "text", "time"])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.name == ownProfile().data.username
+        && request.resource.data.role == ownProfile().data.role
+        && request.resource.data.nameColor == ownProfile().data.nameColor
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500;
+      allow update: if false;
+      allow delete: if isMod();
+    }
+
+    match /bannedWords/{wordId} {
+      allow read: if signedIn();
+      allow create: if isMod()
+        && wordId.size() >= 2
+        && wordId.size() <= 40
+        && request.resource.data.keys().hasOnly(["word", "createdBy", "createdAt"])
+        && request.resource.data.word == wordId
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if false;
+      allow delete: if isMod();
+    }
+  }
+}
