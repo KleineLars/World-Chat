@@ -32,7 +32,7 @@ service cloud.firestore {
 
     function isConfiguredOwnerEmail() {
       return signedIn() && request.auth.token.email in [
-        "your-google-email@example.com"
+        "debackkerlars67@gmail.com"
       ];
     }
 
